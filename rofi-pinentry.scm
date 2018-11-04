@@ -1,7 +1,10 @@
 #! /usr/bin/guile -s
 !#
 
+;; Based on https://gist.github.com/sardemff7/759cbf956bea20d382a6128c641d2746
+
 (use-modules
+ (ice-9 popen)
  (ice-9 textual-ports)
  (srfi srfi-9) ;; For records
  (ice-9 format)
@@ -15,62 +18,107 @@
   (desc pinentry-desc set-pinentry-desc!)
   (visibility pinentry-visibility set-pinentry-visibility!))
 
-(define-record-type <pinregex>
-  (make-pinregex option getinfo setkeyinfo setdesc setprompt getpin bye)
-  pinregex?
-  (option pinregex-option)
-  (getinfo pinregex-getinfo)
-  (setkeyinfo pinregex-setkeyinfo)
-  (setdesc pinregex-setdesc)
-  (setprompt pinregex-setprompt)
-  (getpin pinregex-getpin)
-  (bye pinregex-bye))
-
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
   (begin (set! val expr) val))
 
-(define (pinentry-loop pinentry pinregex input-port)
-  (let ((line (get-line input-port))
-        (rofi "rofi -dmenu -input /dev/null ~a -disable-history -p ~s ~a ~s")
+(define (pinentry-option pinentry line)
+  "Process line if it starts with OPTION.
+Return false otherwise.
+
+Known options are:
+grab
+ttyname=/dev/pts/1
+ttytype=tmux-256color
+lc-messages=C
+allow-external-password-cache
+default-ok=_OK
+default-cancel=_Cancel
+default-yes=_Yes
+default-no=_No
+default-prompt=PIN:
+default-pwmngr=_Save in password manager
+default-cf-visi=Do you really want to make your passphrase visible on the screen?
+default-tt-visi=Make passphrase visible
+default-tt-hide=Hide passphrase
+touch-file=/run/user/1000/gnupg/S.gpg-agent"
+  (let ((option-re (make-regexp "^OPTION (.+)$")))
+    (regexp-exec option-re line)))
+
+(define (pinentry-getinfo pinentry line)
+  "Process line if it starts with GETINFO"
+  (let ((getinfo-re (make-regexp "^GETINFO (.+)$"))
         (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec getinfo-re line))
+      (let ((info (match:substring regex-match 1)))
+        (cond 
+         ((string=? info "pid")
+          (format #t "D ~a\n" (getpid))))))
+    regex-match))
+
+(define (pinentry-setkeyinfo pinentry line)
+  "SETKEYINFO s/FINGERPRINT"
+  (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$")))
+    (regexp-exec setkeyinfo-re line)))
+
+(define (pinentry-setdesc pinentry line)
+  "SETDESC Please enter the passphrase for the ssh key%0A  ke:yf:in:ge:rp:ri:nt"
+  (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setdesc-re line))
+      (set-pinentry-desc! pinentry (match:substring regex-match 1)))
+    regex-match))
+
+(define (pinentry-setprompt pinentry line)
+  "SETPROMPT Passphrase:"
+  (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setprompt-re line))
+      (set-pinentry-prompt! pinentry (match:substring regex-match 1)))
+    regex-match))
+
+(define (pinentry-getpin pinentry line)
+  (let ((rofi "rofi -dmenu -input /dev/null -disable-history -lines 1 ~a -p ~s ~a ~s")
+        (getpin-re (make-regexp "^GETPIN$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec getpin-re line))
+      (let* ((rofi-cmd (format #f rofi
+                              (if (pinentry-visibility pinentry) "" "-password")
+                              (pinentry-prompt pinentry)
+                              (if (equal? (pinentry-desc pinentry) "") "" "-mesg")
+                              (pinentry-desc pinentry)))
+             (pipe (open-input-pipe rofi-cmd))
+             (pass (get-string-all pipe)))
+        (format #t "D ~a" pass))
+      ;; (set-pinentry-ok! pinentry #f)
+      )
+    regex-match))
+
+(define (pinentry-bye pinentry line)
+  (let ((bye-re (make-regexp "^BYE"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec bye-re line))
+      (exit #t))
+    regex-match))
+
+(define (pinentry-loop pinentry input-port)
+  (let ((line (get-line input-port)))
     (unless (eof-object? line)
       (cond 
-       ((set-and-return! regex-match (regexp-exec (pinregex-option pinregex) line))
-        (format #t "Option is ~s\n" (match:substring regex-match 1)))
+       ((pinentry-option pinentry line))
+       ((pinentry-getinfo pinentry line))
+       ((pinentry-setkeyinfo pinentry line))
+       ((pinentry-setdesc pinentry line))
+       ((pinentry-setprompt pinentry line))
+       ((pinentry-getpin pinentry line))
+       ((pinentry-bye pinentry line))
+       (#t (begin (format #t "BYE\n") (exit #f))))
+      (pinentry-loop pinentry input-port))))
 
-       ((set-and-return! regex-match (regexp-exec (pinregex-setdesc pinregex) line))
-        (set-pinentry-desc! pinentry (match:substring regex-match 1)))
-
-       ((set-and-return! regex-match (regexp-exec (pinregex-setprompt pinregex) line))
-        (set-pinentry-prompt! pinentry (match:substring regex-match 1)))
-
-       ((set-and-return! regex-match (regexp-exec (pinregex-getpin pinregex) line))
-        (format #t rofi
-                (if (pinentry-visibility pinentry) "" "-password")
-                (pinentry-prompt pinentry)
-                (if (equal? (pinentry-desc pinentry) "") "" "-mesg")
-                (pinentry-desc pinentry)))
-
-       ((set-and-return! regex-match (regexp-exec (pinregex-bye pinregex) line))
-        (exit #t))
-       
-       (#t
-        (begin (format #t "BYE\n")
-               (exit #f))))
-      (pinentry-loop pinentry pinregex input-port))))
-
-(format #t "OK Please go ahead\n")
-(let ((pinentry (make-pinentry #t "Passphrase:" "" #f))
-      (pinregex (make-pinregex
-                 (make-regexp "^OPTION (.+)$")
-                 (make-regexp "^GETINFO (.+)$")
-                 (make-regexp "^SETKEYINFO (.+)$")
-                 (make-regexp "^SETDESC (.+)$")
-                 (make-regexp "^SETPROMPT (.+)$")
-                 (make-regexp "^GETPIN$")
-                 (make-regexp "^BYE"))))
-  (pinentry-loop pinentry pinregex (current-input-port)))
+(display "OK Please go ahead\n")
+(let ((pinentry (make-pinentry #t "Passphrase:" "" #f)))
+  (pinentry-loop pinentry (current-input-port))
+  (when (pinentry-ok pinentry) (display "OK\n")))
 
 
 
