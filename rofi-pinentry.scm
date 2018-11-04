@@ -32,7 +32,7 @@
 
 (define (pinentry-loop pinentry pinregex input-port)
   (let ((line (get-line input-port))
-        (rofi "rofi -dmenu -input /dev/null ~a -disable-history -p ~s -mesg ~s")
+        (rofi "rofi -dmenu -input /dev/null ~a -disable-history -p ~s ~a ~s")
         (regex-match #f))
     (unless (eof-object? line)
       (cond 
@@ -49,17 +49,19 @@
         (format #t rofi
                 (if (pinentry-visibility pinentry) "" "-password")
                 (pinentry-prompt pinentry)
+                (if (equal? (pinentry-desc pinentry) "") "" "-mesg")
                 (pinentry-desc pinentry)))
+
        ((set-and-return! regex-match (regexp-exec (pinregex-bye pinregex) line))
         (exit #t))
+       
        (#t
         (begin (format #t "BYE\n")
-               (exit #f)))
-       )
+               (exit #f))))
       (pinentry-loop pinentry pinregex input-port))))
 
 (format #t "OK Please go ahead\n")
-(let ((pinentry (make-pinentry #t "Passphrase:" "Please enter the passphrase" #f))
+(let ((pinentry (make-pinentry #t "Passphrase:" "" #f))
       (pinregex (make-pinregex
                  (make-regexp "^OPTION (.+)$")
                  (make-regexp "^GETINFO (.+)$")
