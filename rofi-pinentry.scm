@@ -1,6 +1,7 @@
 #! /usr/bin/guile -s
 !#
 
+;; TODO check the license for this one.
 ;; Based on https://gist.github.com/sardemff7/759cbf956bea20d382a6128c641d2746
 
 (use-modules
@@ -21,6 +22,10 @@
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
   (begin (set! val expr) val))
+
+(define (string-empty? str)
+  "Evaluates to #t if string is empty."
+  (string=? str ""))
 
 (define (pinentry-option pinentry line)
   "Process line if it starts with OPTION.
@@ -51,7 +56,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getinfo-re line))
       (let ((info (match:substring regex-match 1)))
-        (cond 
+        (cond
          ((string=? info "pid")
           (format #t "D ~a\n" (getpid))))))
     regex-match))
@@ -85,13 +90,17 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
       (let* ((rofi-cmd (format #f rofi
                               (if (pinentry-visibility pinentry) "" "-password")
                               (pinentry-prompt pinentry)
-                              (if (equal? (pinentry-desc pinentry) "") "" "-mesg")
+                              (if (string-empty? (pinentry-desc pinentry)) "" "-mesg")
                               (pinentry-desc pinentry)))
              (pipe (open-input-pipe rofi-cmd))
-             (pass (get-string-all pipe)))
-        (format #t "D ~a" pass))
-      ;; (set-pinentry-ok! pinentry #f)
-      )
+             (pass (get-string-all pipe))
+             (status (close-pipe pipe)))
+        (if status
+            (unless (string-empty? pass)
+              (format #t "D ~a" pass))
+            (begin
+              (format #t "ERR 83886179 Operation cancelled <rofi>\n")
+              (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
 (define (pinentry-bye pinentry line)
@@ -104,7 +113,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 (define (pinentry-loop pinentry input-port)
   (let ((line (get-line input-port)))
     (unless (eof-object? line)
-      (cond 
+      (cond
        ((pinentry-option pinentry line))
        ((pinentry-getinfo pinentry line))
        ((pinentry-setkeyinfo pinentry line))
@@ -115,10 +124,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        (#t (begin (format #t "BYE\n") (exit #f))))
       (pinentry-loop pinentry input-port))))
 
-(display "OK Please go ahead\n")
 (let ((pinentry (make-pinentry #t "Passphrase:" "" #f)))
+  (format #t "OK Please go ahead\n")
   (pinentry-loop pinentry (current-input-port))
-  (when (pinentry-ok pinentry) (display "OK\n")))
-
-
-
+  (when (pinentry-ok pinentry)
+    (format #t "OK\n")))
