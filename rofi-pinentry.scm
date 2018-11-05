@@ -76,7 +76,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
       (let ((info (match:substring regex-match 1)))
         (cond
          ((string=? info "pid")
-          (format #t "D ~a\n" (getpid))))))
+          (format #t "D ~a\n" (getpid))
+          (force-output)))))
     regex-match))
 
 (define (pinentry-setkeyinfo pinentry line)
@@ -115,9 +116,11 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
              (status (close-pipe pipe)))
         (if status
             (unless (string-empty? pass)
-              (format #t "D ~a" pass))
+              (format #t "D ~a" pass)
+              (force-output))
             (begin
               (format #t "ERR 83886179 Operation cancelled <rofi>\n")
+              (force-output)
               (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
@@ -139,11 +142,16 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-setprompt pinentry line))
        ((pinentry-getpin pinentry line))
        ((pinentry-bye pinentry line))
-       (#t (begin (format #t "BYE\n") (exit #f))))
+       (#t (begin
+             (format #t "BYE\n")
+             (force-output)
+             (exit #f))))
       (pinentry-loop pinentry input-port))))
 
 (let ((pinentry (make-pinentry #t "Passphrase:" "" #f)))
   (format #t "OK Please go ahead\n")
+  (force-output)
   (pinentry-loop pinentry (current-input-port))
   (when (pinentry-ok pinentry)
-    (format #t "OK\n")))
+    (format #t "OK\n")
+    (force-output)))
