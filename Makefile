@@ -5,7 +5,7 @@ ifeq ($(GUILE_SUPPORT),)
   $(error No guile support bailing out)
 endif
 
-GUILE_SITE_CCACHE=$(guile (%site-ccache-dir))
+GUILE_SITE_CCACHE ?= $(guile (%site-ccache-dir))
 PREFIX ?=
 PREFIX_BIN ?= $(PREFIX)/usr/bin
 install:
