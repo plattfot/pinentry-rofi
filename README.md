@@ -10,6 +10,8 @@ the width to be 27.
 I also wanted a small project which I could use to practice writing
 GNU guile.
 
+NOTE: Currently not working!
+
 # Install
 ## From source
 
