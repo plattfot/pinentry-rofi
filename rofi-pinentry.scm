@@ -22,8 +22,6 @@
 ;;  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;;  THE SOFTWARE.
 
-;; Based on https://gist.github.com/sardemff7/759cbf956bea20d382a6128c641d2746
-
 (use-modules
  (ice-9 popen)
  (ice-9 textual-ports)
