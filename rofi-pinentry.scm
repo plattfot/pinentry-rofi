@@ -90,7 +90,14 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
-      (set-pinentry-desc! pinentry (match:substring regex-match 1)))
+      (let* ((mesg (match:substring regex-match 1))
+             (mesg (regexp-substitute/global #f "<" mesg 'pre "&lt;" 'post))
+             (mesg (regexp-substitute/global
+                    #f "%([[:xdigit:]]{2})" mesg 'pre
+                    (lambda (m) (integer->char
+                                 (string->number
+                                  (match:substring m 1) 16))) 'post)))
+        (set-pinentry-desc! pinentry mesg)))
     regex-match))
 
 (define (pinentry-setprompt pinentry line)
@@ -102,19 +109,24 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
     regex-match))
 
 (define (pinentry-getpin pinentry line)
-  (let ((rofi "rofi -dmenu -input /dev/null -disable-history -lines 1 ~a -p ~s ~a ~s")
+  (let ((rofi "env ~a rofi -dmenu ~a -disable-history -lines 1 ~a -p ~s ~a ~s")
         (getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getpin-re line))
-      (let* ((rofi-cmd (format #f rofi
-                              (if (pinentry-visibility pinentry) "" "-password")
-                              (pinentry-prompt pinentry)
-                              (if (string-empty? (pinentry-desc pinentry)) "" "-mesg")
-                              (pinentry-desc pinentry)))
+      (let* ((pipe (open-input-pipe "systemctl --user show-environment"))
+             (env (get-string-all pipe))
+             (status (close-pipe pipe))
+             (rofi-cmd (format #f rofi
+                               (regexp-substitute/global #f "[\n]" env 'pre " " 'post)
+                               "-input /dev/null"
+                               (if (pinentry-visibility pinentry) "" "-password")
+                               (pinentry-prompt pinentry)
+                               (if (string-empty? (pinentry-desc pinentry)) "" "-mesg")
+                               (pinentry-desc pinentry)))
              (pipe (open-input-pipe rofi-cmd))
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
-        (if status
+        (if (equal? (status:exit-val status) 0)
             (unless (string-empty? pass)
               (format #t "D ~a" pass)
               (force-output))
