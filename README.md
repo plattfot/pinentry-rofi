@@ -5,12 +5,10 @@ Based on [this gist](https://gist.github.com/sardemff7/759cbf956bea20d382a6128c6
 Simple pinentry gui using rofi written in GNU guile.
 
 It's similar in functionality as the gist but this one doesn't force
-the width to be 27.
+the width to be 27 and doesn't depend on systemd.
 
 I also wanted a small project which I could use to practice writing
 GNU guile.
-
-NOTE: Currently not working!
 
 # Install
 ## From source
