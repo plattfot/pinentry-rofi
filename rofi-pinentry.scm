@@ -27,15 +27,23 @@
  (ice-9 textual-ports)
  (srfi srfi-9) ;; For records
  (ice-9 format)
- (ice-9 regex))
+ (ice-9 regex)
+ (ice-9 getopt-long))
+
+(define pinentry-rofi-guile-version "0.1.0")
+
+(when (equal? (system-file-name-convention) 'windows)
+  (format #t "Only support posix systems!")
+  (exit #f))
 
 (define-record-type <pinentry>
-  (make-pinentry ok prompt desc visibility)
+  (make-pinentry ok prompt desc visibility display)
   pinentry?
   (ok pinentry-ok set-pinentry-ok!)
   (prompt pinentry-prompt set-pinentry-prompt!)
   (desc pinentry-desc set-pinentry-desc!)
-  (visibility pinentry-visibility set-pinentry-visibility!))
+  (visibility pinentry-visibility set-pinentry-visibility!)
+  (display pinentry-display set-pinentry-display!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
@@ -85,18 +93,24 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$")))
     (regexp-exec setkeyinfo-re line)))
 
+(define (html-< str)
+  "Replace < with &lt;"
+  (regexp-substitute/global #f "<" str 'pre "&lt;" 'post))
+
+(define (hex->char str)
+  "Replace matching'%XX' where X ∈ {0-F} with their respective char."
+  (regexp-substitute/global
+   #f "%([[:xdigit:]]{2})" str 'pre
+   (lambda (m) (integer->char
+                (string->number
+                 (match:substring m 1) 16))) 'post))
+
 (define (pinentry-setdesc pinentry line)
   "SETDESC Please enter the passphrase for the ssh key%0A  ke:yf:in:ge:rp:ri:nt"
   (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
-      (let* ((mesg (match:substring regex-match 1))
-             (mesg (regexp-substitute/global #f "<" mesg 'pre "&lt;" 'post))
-             (mesg (regexp-substitute/global
-                    #f "%([[:xdigit:]]{2})" mesg 'pre
-                    (lambda (m) (integer->char
-                                 (string->number
-                                  (match:substring m 1) 16))) 'post)))
+      (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
         (set-pinentry-desc! pinentry mesg)))
     regex-match))
 
@@ -109,21 +123,21 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
     regex-match))
 
 (define (pinentry-getpin pinentry line)
-  (let ((rofi "env ~a rofi -dmenu ~a -disable-history -lines 1 ~a -p ~s ~a ~s")
-        (getpin-re (make-regexp "^GETPIN$"))
+  (let ((getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getpin-re line))
-      (let* ((pipe (open-input-pipe "systemctl --user show-environment"))
-             (env (get-string-all pipe))
-             (status (close-pipe pipe))
-             (rofi-cmd (format #f rofi
-                               (regexp-substitute/global #f "[\n]" env 'pre " " 'post)
-                               "-input /dev/null"
-                               (if (pinentry-visibility pinentry) "" "-password")
-                               (pinentry-prompt pinentry)
-                               (if (string-empty? (pinentry-desc pinentry)) "" "-mesg")
-                               (pinentry-desc pinentry)))
-             (pipe (open-input-pipe rofi-cmd))
+      (let* ((pipe (open-pipe*
+                    OPEN_READ
+                    "env"
+                    (format #f "DISPLAY=~a" (pinentry-display pinentry))
+                    "rofi"
+                    "-dmenu" 
+                    "-input" "/dev/null" 
+                    "-disable-history"
+                    "-lines" "1" 
+                    (if (pinentry-visibility pinentry) "" "-password")
+                    "-p" (pinentry-prompt pinentry) 
+                    "-mesg" (pinentry-desc pinentry)))
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
         (if (equal? (status:exit-val status) 0)
@@ -163,7 +177,31 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (force-output))
       (pinentry-loop pinentry input-port))))
 
-(let ((pinentry (make-pinentry #t "Passphrase:" "" #f)))
+(let* ((option-spec
+        '((display (single-char #\d) (value #t))
+          (xauthority (single-char #\a) (value #t))
+          (version (single-char #\v) (value #f))
+          (help (single-char #\h) (value #f))))
+       (default-display ":0")
+       (options (getopt-long (command-line) option-spec))
+       (pinentry (make-pinentry #t "Passphrase:" "" #f
+                                (option-ref options 'display default-display))))
+  (when (option-ref options 'help #f)
+    (format #t "\
+Usage: ~a [OPTIONS]
+Options:
+  -d, --display DISPLAY Set display, default is ~s.
+  -v, --version         Display version.
+  -h, --help            Display this help.
+Author:
+Fredrik \"PlaTFooT\" Salomonsson
+"
+(car (command-line))
+default-display)
+    (exit #t))
+  (when (option-ref options 'version #f)
+    (format #t "pinentry-rofi-guile version ~a\n" pinentry-rofi-guile-version)
+    (exit #t))
   (format #t "OK Please go ahead\n")
   (force-output)
   (pinentry-loop pinentry (current-input-port)))
