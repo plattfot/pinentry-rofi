@@ -1,7 +1,5 @@
 
-GUILE_SUPPORT = $(filter $(.FEATURES),guile)
-
-ifeq ($(GUILE_SUPPORT),)
+ifeq ($(filter $(.FEATURES),guile),)
   $(error No guile support bailing out)
 endif
 
@@ -10,5 +8,5 @@ PREFIX ?=
 PREFIX_BIN ?= $(PREFIX)/usr/bin
 install:
 	@install -d $(PREFIX_BIN) $(PREFIX)$(GUILE_SITE_CCACHE)
-	@install -T rofi-pinentry.scm $(PREFIX_BIN)/pinentry-rofi
-	@guild compile rofi-pinentry.scm -o $(PREFIX)$(GUILE_SITE_CCACHE)/pinentry-rofi.go
+	@install -T pinentry-rofi.scm $(PREFIX_BIN)/pinentry-rofi-guile
+	@guild compile pinentry-rofi.scm -o $(PREFIX)$(GUILE_SITE_CCACHE)/pinentry-rofi-guile.go
