@@ -30,7 +30,7 @@
  (ice-9 regex)
  (ice-9 getopt-long))
 
-(define pinentry-rofi-guile-version "0.1.0")
+(define pinentry-rofi-guile-version "0.3.0")
 
 (when (equal? (system-file-name-convention) 'windows)
   (format #t "Only support posix systems!")
