@@ -1,4 +1,5 @@
-#! /usr/bin/guile -s
+#! /usr/bin/guile \
+-e main -s
 !#
 
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
@@ -30,7 +31,7 @@
  (ice-9 regex)
  (ice-9 getopt-long))
 
-(define pinentry-rofi-guile-version "0.3.0")
+(define pinentry-rofi-guile-version "0.4.0")
 
 (when (equal? (system-file-name-convention) 'windows)
   (format #t "Only support posix systems!")
@@ -131,12 +132,12 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                     "env"
                     (format #f "DISPLAY=~a" (pinentry-display pinentry))
                     "rofi"
-                    "-dmenu" 
-                    "-input" "/dev/null" 
+                    "-dmenu"
+                    "-input" "/dev/null"
                     "-disable-history"
-                    "-lines" "1" 
+                    "-lines" "1"
                     (if (pinentry-visibility pinentry) "" "-password")
-                    "-p" (pinentry-prompt pinentry) 
+                    "-p" (pinentry-prompt pinentry)
                     "-mesg" (pinentry-desc pinentry)))
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
@@ -177,17 +178,18 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (force-output))
       (pinentry-loop pinentry input-port))))
 
-(let* ((option-spec
-        '((display (single-char #\d) (value #t))
-          (xauthority (single-char #\a) (value #t))
-          (version (single-char #\v) (value #f))
-          (help (single-char #\h) (value #f))))
-       (default-display ":0")
-       (options (getopt-long (command-line) option-spec))
-       (pinentry (make-pinentry #t "Passphrase:" "" #f
-                                (option-ref options 'display default-display))))
-  (when (option-ref options 'help #f)
-    (format #t "\
+(define (main args)
+  (let* ((option-spec
+          '((display (single-char #\d) (value #t))
+            (xauthority (single-char #\a) (value #t))
+            (version (single-char #\v) (value #f))
+            (help (single-char #\h) (value #f))))
+         (default-display ":0")
+         (options (getopt-long (command-line) option-spec))
+         (pinentry (make-pinentry #t "Passphrase:" "" #f
+                                  (option-ref options 'display default-display))))
+    (when (option-ref options 'help #f)
+      (format #t "\
 Usage: ~a [OPTIONS]
 Options:
   -d, --display DISPLAY Set display, default is ~s.
@@ -196,12 +198,12 @@ Options:
 Author:
 Fredrik \"PlaTFooT\" Salomonsson
 "
-(car (command-line))
-default-display)
-    (exit #t))
-  (when (option-ref options 'version #f)
-    (format #t "pinentry-rofi-guile version ~a\n" pinentry-rofi-guile-version)
-    (exit #t))
-  (format #t "OK Please go ahead\n")
-  (force-output)
-  (pinentry-loop pinentry (current-input-port)))
+              (car (command-line))
+              default-display)
+      (exit #t))
+    (when (option-ref options 'version #f)
+      (format #t "pinentry-rofi-guile version ~a\n" pinentry-rofi-guile-version)
+      (exit #t))
+    (format #t "OK Please go ahead\n")
+    (force-output)
+    (pinentry-loop pinentry (current-input-port))))
