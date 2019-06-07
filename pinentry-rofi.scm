@@ -1,5 +1,5 @@
 #! /usr/bin/guile \
--e main -s
+--no-auto-compile -e main -s
 !#
 
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
