@@ -74,12 +74,12 @@ default-cf-visi=Do you really want to make your passphrase visible on the screen
 default-tt-visi=Make passphrase visible
 default-tt-hide=Hide passphrase
 touch-file=/run/user/1000/gnupg/S.gpg-agent"
-  (let ((option-re (make-regexp "^OPTION (.+)$")))
+  (let ((option-re (make-regexp "^OPTION (.+)$" regexp/icase)))
     (regexp-exec option-re line)))
 
 (define (pinentry-getinfo pinentry line)
   "Process line if it starts with GETINFO"
-  (let ((getinfo-re (make-regexp "^GETINFO (.+)$"))
+  (let ((getinfo-re (make-regexp "^GETINFO (.+)$" regexp/icase))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getinfo-re line))
       (let ((info (match:substring regex-match 1)))
@@ -91,7 +91,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 
 (define (pinentry-setkeyinfo pinentry line)
   "SETKEYINFO s/FINGERPRINT"
-  (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$")))
+  (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$" regexp/icase)))
     (regexp-exec setkeyinfo-re line)))
 
 (define (html-< str)
@@ -108,7 +108,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 
 (define (pinentry-setdesc pinentry line)
   "SETDESC Please enter the passphrase for the ssh key%0A  ke:yf:in:ge:rp:ri:nt"
-  (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
+  (let ((setdesc-re (make-regexp "^SETDESC (.+)$" regexp/icase))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
       (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
@@ -117,14 +117,14 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 
 (define (pinentry-setprompt pinentry line)
   "SETPROMPT Passphrase:"
-  (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
+  (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$" regexp/icase))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setprompt-re line))
       (set-pinentry-prompt! pinentry (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-getpin pinentry line)
-  (let ((getpin-re (make-regexp "^GETPIN$"))
+  (let ((getpin-re (make-regexp "^GETPIN$" regexp/icase))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getpin-re line))
       (let* ((pipe (open-pipe*
@@ -152,7 +152,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
     regex-match))
 
 (define (pinentry-bye pinentry line)
-  (let ((bye-re (make-regexp "^BYE"))
+  (let ((bye-re (make-regexp "^BYE" regexp/icase))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec bye-re line))
       (exit #t))
