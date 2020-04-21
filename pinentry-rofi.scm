@@ -31,7 +31,7 @@
  (ice-9 regex)
  (ice-9 getopt-long))
 
-(define pinentry-rofi-guile-version "0.4.0")
+(define pinentry-rofi-guile-version "0.5.0")
 
 (when (equal? (system-file-name-convention) 'windows)
   (format #t "Only support posix systems!")
@@ -44,7 +44,8 @@
   (prompt pinentry-prompt set-pinentry-prompt!)
   (desc pinentry-desc set-pinentry-desc!)
   (visibility pinentry-visibility set-pinentry-visibility!)
-  (display pinentry-display set-pinentry-display!))
+  (display pinentry-display set-pinentry-display!)
+  (error pinentry-error set-pinentry-error!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
@@ -115,6 +116,15 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (set-pinentry-desc! pinentry mesg)))
     regex-match))
 
+(define (pinentry-seterror pinentry line)
+  "SETERROR MESSAGE"
+  (let ((seterror-re (make-regexp "^SETERROR (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec seterror-re line))
+      (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
+        (set-pinentry-error! pinentry mesg))
+      regex-match)))
+
 (define (pinentry-setprompt pinentry line)
   "SETPROMPT Passphrase:"
   (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
@@ -138,7 +148,11 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                     "-lines" "1"
                     (if (pinentry-visibility pinentry) "" "-password")
                     "-p" (pinentry-prompt pinentry)
-                    "-mesg" (pinentry-desc pinentry)))
+                    "-mesg" (if (pinentry-error pinentry)
+                                (format #f "~a\n~a"
+                                        (pinentry-error pinentry)
+                                        (pinentry-desc pinentry))
+                                (pinentry-desc pinentry))))
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
         (if (equal? (status:exit-val status) 0)
@@ -168,6 +182,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-setdesc pinentry line))
        ((pinentry-setprompt pinentry line))
        ((pinentry-getpin pinentry line))
+       ((pinentry-seterror pinentry line))
        ((pinentry-bye pinentry line))
        (#t (begin
              (format #t "BYE\n")
