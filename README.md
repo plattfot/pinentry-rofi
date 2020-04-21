@@ -14,7 +14,7 @@ GNU guile.
 ## From source
 
 ```bash
-$ git clone git@github.com:plattfot/pinentry-rofi.git
+$ git clone https://github.com/plattfot/pinentry-rofi.git
 $ cd pinentry-rofi
 $ make PREFIX=<install dir>
 ```
@@ -27,7 +27,7 @@ the site cache for guile is configured to.
 Clone my aur reop and the build the package using the PKGBUILD:
 
 ```bash
-$ git clone git@github.com:plattfot/pinentry-rofi-aur.git
+$ git clone https://github.com/plattfot/pinentry-rofi-aur.git
 $ cd pinentry-rofi-aur
 $ makepkg -ic
 ```
