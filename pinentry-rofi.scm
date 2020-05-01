@@ -122,8 +122,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec seterror-re line))
       (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
-        (set-pinentry-error! pinentry mesg))
-      regex-match)))
+        (set-pinentry-error! pinentry mesg)))
+    regex-match))
 
 (define (pinentry-setprompt pinentry line)
   "SETPROMPT Passphrase:"
