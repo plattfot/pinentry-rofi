@@ -213,13 +213,13 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
           '((display (single-char #\d) (value #t))
             (xauthority (single-char #\a) (value #t))
             (version (single-char #\v) (value #f))
-            (debug (value #t))
+            (log (value #t))
             (help (single-char #\h) (value #f))))
          (default-display ":0")
          (options (getopt-long (command-line) option-spec))
          (pinentry (make-pinentry #t "Passphrase:" "" #f
                                   (option-ref options 'display default-display)
-                                  (let ((logfile (option-ref options 'debug #f)))
+                                  (let ((logfile (option-ref options 'log #f)))
                                     (when logfile
                                       (open-output-file
                                        (format #f "~a.~a" logfile (getpid))))))))
@@ -228,7 +228,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 Usage: ~a [OPTIONS]
 Options:
   -d, --display DISPLAY Set display, default is ~s.
-      --debug LOGFILE   Run in debug mode and output log to LOGFILE
+      --log LOGFILE     Log unknown commands to LOGFILE
   -v, --version         Display version.
   -h, --help            Display this help.
 Author:
