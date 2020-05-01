@@ -195,13 +195,14 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-seterror pinentry line))
        ((pinentry-bye pinentry line))
        (#t (begin
-             (format #t "BYE\n")
              (let ((log (pinentry-logfile pinentry)))
                (when (file-port? log)
                  (format log "Unknown command: ~s\n" line)
                  (force-output log)))
+              ;; GPG_ERR_NOT_IMPLEMENTED == 69
+             (format #t "ERR 69 Unknown command ~s\n" line)
              (force-output)
-             (exit #f))))
+             (set-pinentry-ok! pinentry #f))))
       (when (pinentry-ok pinentry)
         (format #t "OK\n")
         (force-output))
