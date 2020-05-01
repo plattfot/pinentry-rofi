@@ -87,13 +87,17 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (cond
          ((string=? info "pid")
           (format #t "D ~a\n" (getpid))
-          (force-output)))))
+          (force-output))))
+      (set-pinentry-ok! pinentry #t))
     regex-match))
 
 (define (pinentry-setkeyinfo pinentry line)
   "SETKEYINFO s/FINGERPRINT"
-  (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$")))
-    (regexp-exec setkeyinfo-re line)))
+  (let ((setkeyinfo-re (make-regexp "^SETKEYINFO (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setkeyinfo-re line))
+      (set-pinentry-ok! pinentry #t))
+    regex-match))
 
 (define (html-< str)
   "Replace < with &lt;"
@@ -113,7 +117,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
       (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
-        (set-pinentry-desc! pinentry mesg)))
+        (set-pinentry-desc! pinentry mesg))
+      (set-pinentry-ok! pinentry #t))
     regex-match))
 
 (define (pinentry-seterror pinentry line)
@@ -122,7 +127,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec seterror-re line))
       (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
-        (set-pinentry-error! pinentry mesg)))
+        (set-pinentry-error! pinentry mesg)
+        (set-pinentry-ok! pinentry #t)))
     regex-match))
 
 (define (pinentry-setprompt pinentry line)
@@ -130,7 +136,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setprompt-re line))
-      (set-pinentry-prompt! pinentry (match:substring regex-match 1)))
+      (set-pinentry-prompt! pinentry (match:substring regex-match 1))
+      (set-pinentry-ok! pinentry #t))
     regex-match))
 
 (define (pinentry-getpin pinentry line)
@@ -156,9 +163,11 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
         (if (equal? (status:exit-val status) 0)
-            (unless (string-empty? pass)
-              (format #t "D ~a" pass)
-              (force-output))
+            (begin
+              (unless (string-empty? pass)
+                (format #t "D ~a" pass)
+                (force-output))
+              (set-pinentry-ok! pinentry #t))
             (begin
               (format #t "ERR 83886179 Operation cancelled <rofi>\n")
               (force-output)
