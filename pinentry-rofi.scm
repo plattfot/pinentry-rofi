@@ -38,14 +38,15 @@
   (exit #f))
 
 (define-record-type <pinentry>
-  (make-pinentry ok prompt desc visibility display)
+  (make-pinentry ok prompt desc visibility display logfile)
   pinentry?
   (ok pinentry-ok set-pinentry-ok!)
   (prompt pinentry-prompt set-pinentry-prompt!)
   (desc pinentry-desc set-pinentry-desc!)
   (visibility pinentry-visibility set-pinentry-visibility!)
   (display pinentry-display set-pinentry-display!)
-  (error pinentry-error set-pinentry-error!))
+  (error pinentry-error set-pinentry-error!)
+  (logfile pinentry-logfile set-pinentry-logfile!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
@@ -195,6 +196,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-bye pinentry line))
        (#t (begin
              (format #t "BYE\n")
+             (let ((log (pinentry-logfile pinentry)))
+               (when (file-port? log)
+                 (format log "Unknown command: ~s\n" line)
+                 (force-output log)))
              (force-output)
              (exit #f))))
       (when (pinentry-ok pinentry)
@@ -207,16 +212,22 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
           '((display (single-char #\d) (value #t))
             (xauthority (single-char #\a) (value #t))
             (version (single-char #\v) (value #f))
+            (debug (value #t))
             (help (single-char #\h) (value #f))))
          (default-display ":0")
          (options (getopt-long (command-line) option-spec))
          (pinentry (make-pinentry #t "Passphrase:" "" #f
-                                  (option-ref options 'display default-display))))
+                                  (option-ref options 'display default-display)
+                                  (let ((logfile (option-ref options 'debug #f)))
+                                    (when logfile
+                                      (open-output-file
+                                       (format #f "~a.~a" logfile (getpid))))))))
     (when (option-ref options 'help #f)
       (format #t "\
 Usage: ~a [OPTIONS]
 Options:
   -d, --display DISPLAY Set display, default is ~s.
+      --debug LOGFILE   Run in debug mode and output log to LOGFILE
   -v, --version         Display version.
   -h, --help            Display this help.
 Author:
