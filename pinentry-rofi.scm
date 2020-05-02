@@ -46,7 +46,10 @@
   (visibility pinentry-visibility set-pinentry-visibility!)
   (display pinentry-display set-pinentry-display!)
   (error pinentry-error set-pinentry-error!)
-  (logfile pinentry-logfile set-pinentry-logfile!))
+  (logfile pinentry-logfile set-pinentry-logfile!)
+  (ok-button pinentry-ok-button set-pinentry-ok-button!)
+  (notok-button pinentry-notok-button set-pinentry-notok-button!)
+  (cancel-button pinentry-cancel-button set-pinentry-cancel-button!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val"
@@ -98,6 +101,36 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setkeyinfo-re line))
       (set-pinentry-ok! pinentry #t))
+    regex-match))
+
+(define (pinentry-setok pinentry line)
+  "Set ok button label."
+  (let ((setok-button-re (make-regexp "^SETOK (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setok-button-re line))
+      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+        (set-pinentry-ok-button! pinentry label)
+        (set-pinentry-ok! pinentry #t)))
+    regex-match))
+
+(define (pinentry-setcancel pinentry line)
+  "Set cancel button label."
+  (let ((setcancel-button-re (make-regexp "^SETCANCEL (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setcancel-button-re line))
+      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+        (set-pinentry-cancel-button! pinentry label)
+        (set-pinentry-ok! pinentry #t)))
+    regex-match))
+
+(define (pinentry-setnotok pinentry line)
+  "Set notok button label."
+  (let ((setnotok-button-re (make-regexp "^SETNOTOK (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec setnotok-button-re line))
+      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+        (set-pinentry-notok-button! pinentry label)
+        (set-pinentry-ok! pinentry #t)))
     regex-match))
 
 (define (html-< str)
@@ -153,7 +186,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                     "-dmenu"
                     "-input" "/dev/null"
                     "-disable-history"
-                    "-lines" "1"
+                    "-l" "1"
                     (if (pinentry-visibility pinentry) "" "-password")
                     "-p" (pinentry-prompt pinentry)
                     "-mesg" (if (pinentry-error pinentry)
@@ -175,6 +208,43 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
               (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
+(define (pinentry-confirm pinentry line)
+  (let ((getpin-re (make-regexp "^CONFIRM$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec getpin-re line))
+      ;; Can probably do this with a pipe in both direction, but
+      ;; manual warns about deadlocks so sticking with this for now.
+      (let* ((pipe (open-pipe
+                    (string-join
+                     `("echo -e "
+                       ,(format #f "'~a\n~a'"
+                                ;; Find a cleaner way, e.g. or
+                                (or (pinentry-ok-button pinentry) "ok")
+                                (or (pinentry-notok-button pinentry)
+                                    (pinentry-cancel-button pinentry)
+                                    "cancel"))
+                       "|"
+                       ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
+                       "rofi -dmenu -disable-history -only-match -l 2 -i"
+                       ,(format #f "-p ~s" (pinentry-prompt pinentry))
+                       ,(format #f "-mesg ~s" (if (pinentry-error pinentry)
+                                                  (format #f "~a\n~a"
+                                                          (pinentry-error pinentry)
+                                                          (pinentry-desc pinentry))
+                                                  (pinentry-desc pinentry)))))
+                    OPEN_READ))
+             (pass (get-string-all pipe))
+             (status (close-pipe pipe)))
+        (if (and (equal? (status:exit-val status) 0)
+                 (string=? (string-trim-right pass)
+                           (or (pinentry-ok-button pinentry) "ok")))
+            (set-pinentry-ok! pinentry #t)
+            (begin
+              (format #t "ERR 277 Operation cancelled\n")
+              (force-output)
+              (set-pinentry-ok! pinentry #f)))))
+    regex-match))
+
 (define (pinentry-bye pinentry line)
   (let ((bye-re (make-regexp "^BYE"))
         (regex-match #f))
@@ -190,8 +260,12 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-getinfo pinentry line))
        ((pinentry-setkeyinfo pinentry line))
        ((pinentry-setdesc pinentry line))
+       ((pinentry-setok pinentry line))
+       ((pinentry-setnotok pinentry line))
+       ((pinentry-setcancel pinentry line))
        ((pinentry-setprompt pinentry line))
        ((pinentry-getpin pinentry line))
+       ((pinentry-confirm pinentry line))
        ((pinentry-seterror pinentry line))
        ((pinentry-bye pinentry line))
        (#t (begin
@@ -199,8 +273,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                (when (file-port? log)
                  (format log "Unknown command: ~s\n" line)
                  (force-output log)))
-              ;; GPG_ERR_NOT_IMPLEMENTED == 69
-             (format #t "ERR 69 Unknown command ~s\n" line)
+              ;; GPG_ERR_ASS_UNKNOWN_CMD = 275,
+             (format #t "ERR 27t Unknown command ~s\n" line)
              (force-output)
              (set-pinentry-ok! pinentry #f))))
       (when (pinentry-ok pinentry)
