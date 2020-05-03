@@ -59,6 +59,26 @@
   "Evaluates to #t if string is empty."
   (string=? str ""))
 
+(define (html-newline str)
+  "Replace \\\\n with &#10;"
+  (regexp-substitute/global #f "\\\\n" str 'pre "&#10;" 'post))
+
+(define (html-< str)
+  "Replace < with &lt;"
+  (regexp-substitute/global #f "<" str 'pre "&lt;" 'post))
+
+(define (hex->char str)
+  "Replace matching'%XX' where X ∈ {0-F} with their respective char."
+  (regexp-substitute/global
+   #f "%([[:xdigit:]]{2})" str 'pre
+   (lambda (m) (integer->char
+                (string->number
+                 (match:substring m 1) 16))) 'post))
+
+(define (pango-markup str)
+  "Transform string to pango."
+  (hex->char (html-< (html-newline str))))
+
 (define (pinentry-option pinentry line)
   "Process line if it starts with OPTION.
 Return false otherwise.
@@ -108,7 +128,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setok-button-re (make-regexp "^SETOK (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setok-button-re line))
-      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+      (let ((label (pango-markup (match:substring regex-match 1))))
         (set-pinentry-ok-button! pinentry label)
         (set-pinentry-ok! pinentry #t)))
     regex-match))
@@ -118,7 +138,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setcancel-button-re (make-regexp "^SETCANCEL (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setcancel-button-re line))
-      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+      (let ((label (pango-markup (match:substring regex-match 1))))
         (set-pinentry-cancel-button! pinentry label)
         (set-pinentry-ok! pinentry #t)))
     regex-match))
@@ -128,29 +148,17 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setnotok-button-re (make-regexp "^SETNOTOK (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setnotok-button-re line))
-      (let ((label (hex->char (html-< (match:substring regex-match 1)))))
+      (let ((label (pango-markup (match:substring regex-match 1))))
         (set-pinentry-notok-button! pinentry label)
         (set-pinentry-ok! pinentry #t)))
     regex-match))
 
-(define (html-< str)
-  "Replace < with &lt;"
-  (regexp-substitute/global #f "<" str 'pre "&lt;" 'post))
-
-(define (hex->char str)
-  "Replace matching'%XX' where X ∈ {0-F} with their respective char."
-  (regexp-substitute/global
-   #f "%([[:xdigit:]]{2})" str 'pre
-   (lambda (m) (integer->char
-                (string->number
-                 (match:substring m 1) 16))) 'post))
-
 (define (pinentry-setdesc pinentry line)
-  "SETDESC Please enter the passphrase for the ssh key%0A  ke:yf:in:ge:rp:ri:nt"
+  "SETDESC description"
   (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
-      (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
+      (let ((mesg (pango-markup (match:substring regex-match 1))))
         (set-pinentry-desc! pinentry mesg))
       (set-pinentry-ok! pinentry #t))
     regex-match))
@@ -160,7 +168,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((seterror-re (make-regexp "^SETERROR (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec seterror-re line))
-      (let ((mesg (hex->char (html-< (match:substring regex-match 1)))))
+      (let ((mesg (pango-markup (match:substring regex-match 1))))
         (set-pinentry-error! pinentry mesg)
         (set-pinentry-ok! pinentry #t)))
     regex-match))
