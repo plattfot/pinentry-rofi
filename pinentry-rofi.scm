@@ -226,7 +226,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                        "|"
                        ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
                        "rofi -dmenu -disable-history -only-match -l 2 -i"
-                       ,(format #f "-p ~s" (pinentry-prompt pinentry))
+                       ,(format #f "-p '>'")
                        ,(format #f "-mesg ~s" (if (pinentry-error pinentry)
                                                   (format #f "~a\n~a"
                                                           (pinentry-error pinentry)
