@@ -59,10 +59,26 @@
   "Evaluates to #t if string is empty."
   (string=? str ""))
 
+(define (pinentry-remove-underline str)
+  "Replace _ followed by a character with just the character."
+  (regexp-substitute/global #f "(^|[[:blank:]])_([[:alpha:]])" str
+                            'pre 1 2 'post))
+
+(define (pinentry-escape-underscore str)
+  "Replace __ followed by a character with _ and said character.
+Always call this after `pinentry-remove-underline' or
+`html-underline'."
+  (regexp-substitute/global #f "(^|[[:blank:]])__([[:alpha:]])" str
+                            'pre 1 "_" 2 'post))
+
 (define (html-newline str)
   "Replace %0A with &#10;"
   (regexp-substitute/global #f "%0A" str 'pre "&#10;" 'post))
 
+(define (html-underline str)
+  "Underscore followed by a character, underlines that character."
+  (regexp-substitute/global #f "(^|[[:blank:]])_([[:alpha:]])" str
+                            'pre 1"<u>"2"</u>" 'post))
 (define (html-< str)
   "Replace < with &lt;"
   (regexp-substitute/global #f "<" str 'pre "&lt;" 'post))
@@ -77,7 +93,17 @@
 
 (define (pango-markup str)
   "Transform string to pango."
-  (hex->char (html-< (html-newline str))))
+  (hex->char
+   (pinentry-escape-underscore
+    (html-underline
+     (html-<
+      (html-newline str))))))
+
+(define (input-string str)
+  "Transform string to input for rofi.
+Input strings does not support pango markup"
+  (pinentry-escape-underscore
+   (pinentry-remove-underline str)))
 
 (define (pinentry-option pinentry line)
   "Process line if it starts with OPTION.
