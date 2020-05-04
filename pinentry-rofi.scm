@@ -38,7 +38,7 @@
   (exit #f))
 
 (define-record-type <pinentry>
-  (make-pinentry ok prompt desc visibility display logfile)
+  (make-pinentry ok prompt ok-button cancel-button display logfile)
   pinentry?
   (ok pinentry-ok set-pinentry-ok!)
   (prompt pinentry-prompt set-pinentry-prompt!)
@@ -226,11 +226,9 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                     (string-join
                      `("echo -e "
                        ,(format #f "'~a\n~a'"
-                                ;; Find a cleaner way, e.g. or
-                                (or (pinentry-ok-button pinentry) "ok")
+                                (pinentry-ok-button pinentry)
                                 (or (pinentry-notok-button pinentry)
-                                    (pinentry-cancel-button pinentry)
-                                    "cancel"))
+                                    (pinentry-cancel-button pinentry)))
                        "|"
                        ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
                        "rofi -dmenu -disable-history -only-match -l 2 -i"
@@ -244,8 +242,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
              (pass (get-string-all pipe))
              (status (close-pipe pipe)))
         (if (and (equal? (status:exit-val status) 0)
-                 (string=? (string-trim-right pass)
-                           (or (pinentry-ok-button pinentry) "ok")))
+                 (string=? (string-trim-right pass) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
               (format #t "ERR 277 Operation cancelled\n")
@@ -299,7 +296,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
             (help (single-char #\h) (value #f))))
          (default-display ":0")
          (options (getopt-long (command-line) option-spec))
-         (pinentry (make-pinentry #t "Passphrase:" "" #f
+         (pinentry (make-pinentry #t "Passphrase:" "Ok" "Cancel"
                                   (option-ref options 'display default-display)
                                   (let ((logfile (option-ref options 'log #f)))
                                     (when logfile
