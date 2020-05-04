@@ -60,8 +60,8 @@
   (string=? str ""))
 
 (define (html-newline str)
-  "Replace \\\\n with &#10;"
-  (regexp-substitute/global #f "\\\\n" str 'pre "&#10;" 'post))
+  "Replace %0A with &#10;"
+  (regexp-substitute/global #f "%0A" str 'pre "&#10;" 'post))
 
 (define (html-< str)
   "Replace < with &lt;"
