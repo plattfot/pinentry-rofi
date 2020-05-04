@@ -99,8 +99,32 @@ default-cf-visi=Do you really want to make your passphrase visible on the screen
 default-tt-visi=Make passphrase visible
 default-tt-hide=Hide passphrase
 touch-file=/run/user/1000/gnupg/S.gpg-agent"
-  (let ((option-re (make-regexp "^OPTION (.+)$")))
-    (regexp-exec option-re line)))
+  (let ((regex-match #f)
+        (option-re (make-regexp "^OPTION (.+)$")))
+    (cond
+     ((set-and-return! regex-match
+                       (regexp-exec
+                        (make-regexp "^OPTION[[:blank:]]+default-ok=(.+)$") line))
+      (pinentry-set-button
+       set-pinentry-ok-button!
+       pinentry
+       (match:substring regex-match 1)))
+     ((set-and-return! regex-match
+                       (regexp-exec
+                        (make-regexp "^OPTION[[:blank:]]+default-cancel=(.+)$") line))
+      (pinentry-set-button
+       set-pinentry-cancel-button!
+       pinentry
+       (match:substring regex-match 1)))
+     ((set-and-return! regex-match
+                       (regexp-exec
+                        (make-regexp "^OPTION[[:blank:]]+default-prompt=(.+)$") line))
+      (pinentry-set-mesg
+       set-pinentry-prompt!
+       pinentry
+       (match:substring regex-match 1)))
+     ((set-and-return! regex-match (regexp-exec option-re line))))
+    regex-match))
 
 (define (pinentry-getinfo pinentry line)
   "Process line if it starts with GETINFO"
