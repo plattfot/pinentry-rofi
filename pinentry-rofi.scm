@@ -52,7 +52,7 @@
   (cancel-button pinentry-cancel-button set-pinentry-cancel-button!))
 
 (define-syntax-rule (set-and-return! val expr)
-  "Set val to expr and return val"
+  "Set val to expr and return val."
   (begin (set! val expr) val))
 
 (define (string-empty? str)
