@@ -282,7 +282,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                  (format log "Unknown command: ~s\n" line)
                  (force-output log)))
               ;; GPG_ERR_ASS_UNKNOWN_CMD = 275,
-             (format #t "ERR 27t Unknown command ~s\n" line)
+             (format #t "ERR 275 Unknown command ~s\n" line)
              (force-output)
              (set-pinentry-ok! pinentry #f))))
       (when (pinentry-ok pinentry)
