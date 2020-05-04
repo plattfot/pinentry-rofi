@@ -217,9 +217,13 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
     regex-match))
 
 (define (pinentry-confirm pinentry line)
-  (let ((getpin-re (make-regexp "^CONFIRM$"))
+  (let ((confirm-re (make-regexp "^CONFIRM$"))
+        (confirm-one-button-re
+         (make-regexp "^CONFIRM[[:blank:]]+--one-button[[:blank:]]*$"))
+        (message-re (make-regexp "^MESSAGE$"))
         (regex-match #f))
-    (when (set-and-return! regex-match (regexp-exec getpin-re line))
+    (cond
+     ((set-and-return! regex-match (regexp-exec confirm-re line))
       ;; Can probably do this with a pipe in both direction, but
       ;; manual warns about deadlocks so sticking with this for now.
       (let* ((pipe (open-pipe
@@ -251,6 +255,23 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
               (format #t "ERR 277 Operation cancelled\n")
               (force-output)
               (set-pinentry-ok! pinentry #f)))))
+     ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
+          (set-and-return! regex-match (regexp-exec message-re line)))
+      (let ((pipe (open-pipe
+                   (string-join
+                    `("echo -e "
+                      ,(format #f "'~a'" (pinentry-ok-button pinentry))
+                      "|"
+                      ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
+                      "rofi -dmenu -disable-history -only-match -l 1 -i"
+                      ,(format #f "-p '>'")
+                      ,(format #f "-mesg ~s" (if (pinentry-error pinentry)
+                                                 (format #f "~a\n~a"
+                                                         (pinentry-error pinentry)
+                                                         (pinentry-desc pinentry))
+                                                 (pinentry-desc pinentry)))))
+                   OPEN_READ)))
+        (close-pipe pipe))))
     regex-match))
 
 (define (pinentry-bye pinentry line)
