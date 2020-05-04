@@ -105,6 +105,21 @@ Input strings does not support pango markup"
   (pinentry-escape-underscore
    (pinentry-remove-underline str)))
 
+(define* (pinentry-set set-func pinentry label)
+  "Using SET-FUNC, set the entry in PINENTRY to LABEL."
+  (set-func pinentry label)
+  (set-pinentry-ok! pinentry #t))
+
+(define (pinentry-set-button set-func pinentry label)
+  "Using SET-BUTTON-FUNC, set the entry in PINENTRY to LABEL.
+LABEL will be transformed using `input-string'"
+  (pinentry-set set-func pinentry (input-string label)))
+
+(define (pinentry-set-mesg set-func pinentry label)
+  "Using SET-FUNC, set the entry in PINENTRY to LABEL.
+LABEL will be transformed using `pango-markup'"
+  (pinentry-set set-func pinentry (pango-markup label)))
+
 (define (pinentry-option pinentry line)
   "Process line if it starts with OPTION.
 Return false otherwise.
@@ -154,9 +169,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setok-button-re (make-regexp "^SETOK (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setok-button-re line))
-      (let ((label (pango-markup (match:substring regex-match 1))))
-        (set-pinentry-ok-button! pinentry label)
-        (set-pinentry-ok! pinentry #t)))
+      (pinentry-set-button
+       set-pinentry-ok-button!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-setcancel pinentry line)
@@ -164,9 +180,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setcancel-button-re (make-regexp "^SETCANCEL (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setcancel-button-re line))
-      (let ((label (pango-markup (match:substring regex-match 1))))
-        (set-pinentry-cancel-button! pinentry label)
-        (set-pinentry-ok! pinentry #t)))
+      (pinentry-set-button
+       set-pinentry-cancel-button!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-setnotok pinentry line)
@@ -174,9 +191,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setnotok-button-re (make-regexp "^SETNOTOK (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setnotok-button-re line))
-      (let ((label (pango-markup (match:substring regex-match 1))))
-        (set-pinentry-notok-button! pinentry label)
-        (set-pinentry-ok! pinentry #t)))
+      (pinentry-set-button
+       set-pinentry-notok-button!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-setdesc pinentry line)
@@ -184,9 +202,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setdesc-re (make-regexp "^SETDESC (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setdesc-re line))
-      (let ((mesg (pango-markup (match:substring regex-match 1))))
-        (set-pinentry-desc! pinentry mesg))
-      (set-pinentry-ok! pinentry #t))
+      (pinentry-set-mesg
+       set-pinentry-desc!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-seterror pinentry line)
@@ -194,9 +213,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((seterror-re (make-regexp "^SETERROR (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec seterror-re line))
-      (let ((mesg (pango-markup (match:substring regex-match 1))))
-        (set-pinentry-error! pinentry mesg)
-        (set-pinentry-ok! pinentry #t)))
+      (pinentry-set-mesg
+       set-pinentry-error!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-setprompt pinentry line)
@@ -204,8 +224,10 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec setprompt-re line))
-      (set-pinentry-prompt! pinentry (match:substring regex-match 1))
-      (set-pinentry-ok! pinentry #t))
+      (pinentry-set-mesg
+       set-pinentry-prompt!
+       pinentry
+       (match:substring regex-match 1)))
     regex-match))
 
 (define (pinentry-getpin pinentry line)
