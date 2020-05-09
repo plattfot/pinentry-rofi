@@ -135,9 +135,9 @@ Always call this after `remove-underline' or
 
 (define (pango-markup str)
   "Transform string to pango."
-  (hex->char
-   (escape-underscore
-    (html-underline
+  (escape-underscore
+   (html-underline
+    (hex->char
      (html-<
       (html-newline str))))))
 
