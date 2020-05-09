@@ -1,5 +1,5 @@
 #! /usr/bin/guile \
---no-auto-compile -e main -s
+--no-auto-compile -e (pinentry-rofi) -s
 !#
 
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
@@ -23,13 +23,14 @@
 ;;  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;;  THE SOFTWARE.
 
-(use-modules
- (ice-9 popen)
- (ice-9 textual-ports)
- (srfi srfi-9) ;; For records
- (ice-9 format)
- (ice-9 regex)
- (ice-9 getopt-long))
+(define-module (pinentry-rofi)
+  #:use-module (ice-9 popen)
+  #:use-module (ice-9 textual-ports)
+  #:use-module (srfi srfi-9) ;; For records
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 getopt-long)
+  #:export (main))
 
 (define pinentry-rofi-guile-version "0.5.0")
 
