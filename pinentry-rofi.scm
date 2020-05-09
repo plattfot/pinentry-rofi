@@ -60,14 +60,14 @@
   "Evaluates to #t if string is empty."
   (string=? str ""))
 
-(define (pinentry-remove-underline str)
+(define (remove-underline str)
   "Replace _ followed by a character with just the character."
   (regexp-substitute/global #f "(^|[[:blank:]])_([[:alpha:]])" str
                             'pre 1 2 'post))
 
-(define (pinentry-escape-underscore str)
+(define (escape-underscore str)
   "Replace __ followed by a character with _ and said character.
-Always call this after `pinentry-remove-underline' or
+Always call this after `remove-underline' or
 `html-underline'."
   (regexp-substitute/global #f "(^|[[:blank:]])__([[:alpha:]])" str
                             'pre 1 "_" 2 'post))
@@ -95,7 +95,7 @@ Always call this after `pinentry-remove-underline' or
 (define (pango-markup str)
   "Transform string to pango."
   (hex->char
-   (pinentry-escape-underscore
+   (escape-underscore
     (html-underline
      (html-<
       (html-newline str))))))
@@ -103,8 +103,8 @@ Always call this after `pinentry-remove-underline' or
 (define (input-string str)
   "Transform string to input for rofi.
 Input strings does not support pango markup"
-  (pinentry-escape-underscore
-   (pinentry-remove-underline str)))
+  (escape-underscore
+   (remove-underline str)))
 
 (define* (pinentry-set set-func pinentry label)
   "Using SET-FUNC, set the entry in PINENTRY to LABEL."
