@@ -3,7 +3,7 @@
 !#
 
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
-;;  Copyright © 2018 Fredrik "PlaTFooT" Salomonsson
+;;  Copyright © 2018-2020 Fredrik "PlaTFooT" Salomonsson
 ;;
 ;;  Permission is hereby granted, free of charge, to any person obtaining a copy
 ;;  of this software and associated documentation files (the "Software"), to deal
