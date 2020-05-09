@@ -103,14 +103,14 @@
 
 (define (remove-underline str)
   "Replace _ followed by a character with just the character."
-  (regexp-substitute/global #f "(^|[[:blank:]])_([[:alpha:]])" str
+  (regexp-substitute/global #f "(^|%0A|&#10;|\n|[[:blank:]])_([[:alpha:]])" str
                             'pre 1 2 'post))
 
 (define (escape-underscore str)
   "Replace __ followed by a character with _ and said character.
 Always call this after `remove-underline' or
 `html-underline'."
-  (regexp-substitute/global #f "(^|[[:blank:]])__([[:alpha:]])" str
+  (regexp-substitute/global #f "(^|%0A|&#10;|\n|[[:blank:]])__([[:alpha:]])" str
                             'pre 1 "_" 2 'post))
 
 (define (html-newline str)
@@ -119,7 +119,7 @@ Always call this after `remove-underline' or
 
 (define (html-underline str)
   "Underscore followed by a character, underlines that character."
-  (regexp-substitute/global #f "(^|[[:blank:]])_([[:alpha:]])" str
+  (regexp-substitute/global #f "(^|%0A|&#10;|\n|[[:blank:]])_([[:alpha:]])" str
                             'pre 1"<u>"2"</u>" 'post))
 (define (html-< str)
   "Replace < with &lt;"
