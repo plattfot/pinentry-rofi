@@ -30,7 +30,48 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 getopt-long)
-  #:export (main))
+  #:export (main
+            pinentry-rofi-guile-version
+            make-pinentry
+            pinentry?
+            pinentry-ok set-pinentry-ok!
+            pinentry-prompt set-pinentry-prompt!
+            pinentry-desc set-pinentry-desc!
+            pinentry-visibility set-pinentry-visibility!
+            pinentry-display set-pinentry-display!
+            pinentry-error set-pinentry-error!
+            pinentry-logfile set-pinentry-logfile!
+            pinentry-ok-button set-pinentry-ok-button!
+            pinentry-notok-button set-pinentry-notok-button!
+            pinentry-cancel-button set-pinentry-cancel-button!
+
+            remove-underline
+            escape-underscore
+
+            html-newline
+            html-underline
+            html-<
+
+            hex->char
+            input-string
+            pango-markup
+
+            pinentry-set
+
+            pinentry-option
+            pinentry-getinfo
+            pinentry-setkeyinfo
+            pinentry-setok
+            pinentry-setcancel
+            pinentry-setnotok
+            pinentry-setdesc
+            pinentry-seterror
+            pinentry-setprompt
+            pinentry-getpin
+            pinentry-confirm
+            pinentry-bye
+            pinentry-loop))
+
 
 (define pinentry-rofi-guile-version "0.5.0")
 
