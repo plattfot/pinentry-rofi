@@ -338,7 +338,7 @@ Return the input from the user if succeeded else #f."
 (define (compose-message pinentry)
   "Create the message by combining the error and desc from PINENTRY"
   (if (pinentry-error pinentry)
-      (format #f "~a\n~a"
+      (format #f "~a&#10;~a"
               (pinentry-error pinentry)
               (pinentry-desc pinentry))
       (pinentry-desc pinentry)))
