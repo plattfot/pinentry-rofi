@@ -59,6 +59,8 @@
 
             pinentry-set
 
+            rofi-popup
+
             pinentry-option
             pinentry-getinfo
             pinentry-setkeyinfo
