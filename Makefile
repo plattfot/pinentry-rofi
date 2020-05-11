@@ -6,3 +6,7 @@ PREFIX_BIN ?= $(PREFIX)/usr/bin
 install:
 	@install -DT pinentry-rofi.scm $(PREFIX_BIN)/pinentry-rofi-guile
 
+.PHONY: test
+test:
+	@./test.scm
+
