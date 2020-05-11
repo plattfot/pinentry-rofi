@@ -322,18 +322,18 @@ Return the input from the user if succeeded else #f."
                      '()))
          (rofi-sh `("env"
                     ,(string-join
-                      (map (lambda (x) (format #f "~a=~a" (car x) (cdr x))) env))
+                      (map (lambda (x) (format #f "~a=~s" (car x) (cdr x))) env))
                     ,(format #f "rofi -dmenu -disable-history -l ~a -i"
                              (if (list? buttons) (length buttons) 1))
                     ,(if (and only-match buttons) "-only-match" "")
+                    ,(if (not buttons) "-input /dev/null" "")
                     ,(if visibility "" "-password")
                     ,(format #f "-p ~s" prompt)
                     ,(if message (format #f "-mesg ~s" message) "")))
          (pipe (open-pipe (string-join (concatenate `(,inputs ,rofi-sh))) OPEN_READ))
          (pass (get-string-all pipe))
          (status (close-pipe pipe)))
-    (when (and (equal? (status:exit-val status) 0) (not (string-empty? pass)))
-      pass)))
+    (if (and (equal? (status:exit-val status) 0)) pass #f)))
 
 (define (compose-message pinentry)
   "Create the message by combining the error and desc from PINENTRY"
@@ -352,15 +352,15 @@ Return the input from the user if succeeded else #f."
                                #:message (compose-message pinentry)
                                #:visibility (pinentry-visibility pinentry)
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
-        (if pass
-         (begin
-           (format #t "D ~a" pass)
-           (force-output)
-           (set-pinentry-ok! pinentry #t))
-         (begin
-           (format #t "ERR 83886179 Operation cancelled <rofi>\n")
-           (force-output)
-           (set-pinentry-ok! pinentry #f)))))
+        (if (not (string-empty? (string-trim-both pass)))
+            (begin
+              (format #t "D ~a" pass)
+              (force-output)
+              (set-pinentry-ok! pinentry #t))
+            (begin
+              (format #t "ERR 83886179 Operation cancelled <rofi>\n")
+              (force-output)
+              (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
 (define (pinentry-confirm pinentry line confirm-program)
