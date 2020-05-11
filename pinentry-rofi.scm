@@ -26,6 +26,7 @@
 (define-module (pinentry-rofi)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
+  #:use-module (srfi srfi-1) ;; concatenate
   #:use-module (srfi srfi-9) ;; For records
   #:use-module (ice-9 format)
   #:use-module (ice-9 regex)
@@ -296,41 +297,71 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        (match:substring regex-match 1)))
     regex-match))
 
-(define (pinentry-getpin pinentry line)
+(define* (rofi-popup #:key (env '())
+                     visibility
+                     (prompt ">")
+                     message
+                     buttons
+                     only-match)
+  "Run external program rofi and fetch the input from the user.
+
+Keyword arguments:
+PROMPT: Text for the prompt, default '>'
+ENV: List of environemnt variables in the form (ENVVAR . VALUE)
+VISIBILITY: If #t show the input
+MESSAGE: Message for the popup window
+BUTTONS: List of strings that will be buttons.
+ONLY-MATCH: Only allow to match what is listed in the buttons.
+
+Return the input from the user if succeeded else #f."
+  (let* ((inputs (if buttons `("echo -e"
+                               ,(format #f "~s" (string-join buttons "\n"))
+                               "|")
+                     '()))
+         (rofi-sh `("env"
+                    ,(string-join
+                      (map (lambda (x) (format #f "~a=~a" (car x) (cdr x))) env))
+                    ,(format #f "rofi -dmenu -disable-history -l ~a -i"
+                             (if (list? buttons) (length buttons) 1))
+                    ,(if (and only-match buttons) "-only-match" "")
+                    ,(if visibility "" "-password")
+                    ,(format #f "-p ~s" prompt)
+                    ,(if message (format #f "-mesg ~s" message) "")))
+         (pipe (open-pipe (string-join (concatenate `(,inputs ,rofi-sh))) OPEN_READ))
+         (pass (get-string-all pipe))
+         (status (close-pipe pipe)))
+    (when (and (equal? (status:exit-val status) 0) (not (string-empty? pass)))
+      pass)))
+
+(define (compose-message pinentry)
+  "Create the message by combining the error and desc from PINENTRY"
+  (if (pinentry-error pinentry)
+      (format #f "~a\n~a"
+              (pinentry-error pinentry)
+              (pinentry-desc pinentry))
+      (pinentry-desc pinentry)))
+
+(define (pinentry-getpin pinentry line pin-program)
+  "Get pin using PIN-PROGRAM if LINE is equal to GETPIN."
   (let ((getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getpin-re line))
-      (let* ((pipe (open-pipe*
-                    OPEN_READ
-                    "env"
-                    (format #f "DISPLAY=~a" (pinentry-display pinentry))
-                    "rofi"
-                    "-dmenu"
-                    "-input" "/dev/null"
-                    "-disable-history"
-                    "-l" "1"
-                    (if (pinentry-visibility pinentry) "" "-password")
-                    "-p" (pinentry-prompt pinentry)
-                    "-mesg" (if (pinentry-error pinentry)
-                                (format #f "~a\n~a"
-                                        (pinentry-error pinentry)
-                                        (pinentry-desc pinentry))
-                                (pinentry-desc pinentry))))
-             (pass (get-string-all pipe))
-             (status (close-pipe pipe)))
-        (if (equal? (status:exit-val status) 0)
-            (begin
-              (unless (string-empty? pass)
-                (format #t "D ~a" pass)
-                (force-output))
-              (set-pinentry-ok! pinentry #t))
-            (begin
-              (format #t "ERR 83886179 Operation cancelled <rofi>\n")
-              (force-output)
-              (set-pinentry-ok! pinentry #f)))))
+      (let ((pass (pin-program #:prompt (pinentry-prompt pinentry)
+                               #:message (compose-message pinentry)
+                               #:visibility (pinentry-visibility pinentry)
+                               #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
+        (if pass
+         (begin
+           (format #t "D ~a" pass)
+           (force-output)
+           (set-pinentry-ok! pinentry #t))
+         (begin
+           (format #t "ERR 83886179 Operation cancelled <rofi>\n")
+           (force-output)
+           (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
-(define (pinentry-confirm pinentry line)
+(define (pinentry-confirm pinentry line confirm-program)
   (let ((confirm-re (make-regexp "^CONFIRM$"))
         (confirm-one-button-re
          (make-regexp "^CONFIRM[[:blank:]]+--one-button[[:blank:]]*$"))
@@ -340,27 +371,16 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
      ((set-and-return! regex-match (regexp-exec confirm-re line))
       ;; Can probably do this with a pipe in both direction, but
       ;; manual warns about deadlocks so sticking with this for now.
-      (let* ((pipe (open-pipe
-                    (string-join
-                     `("echo -e "
-                       ,(format #f "'~a\n~a'"
-                                (pinentry-ok-button pinentry)
-                                (or (pinentry-notok-button pinentry)
-                                    (pinentry-cancel-button pinentry)))
-                       "|"
-                       ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
-                       "rofi -dmenu -disable-history -only-match -l 2 -i"
-                       ,(format #f "-p '>'")
-                       ,(format #f "-mesg ~s" (if (pinentry-error pinentry)
-                                                  (format #f "~a\n~a"
-                                                          (pinentry-error pinentry)
-                                                          (pinentry-desc pinentry))
-                                                  (pinentry-desc pinentry)))))
-                    OPEN_READ))
-             (pass (get-string-all pipe))
-             (status (close-pipe pipe)))
-        (if (and (equal? (status:exit-val status) 0)
-                 (string=? (string-trim-right pass) (pinentry-ok-button pinentry)))
+      (let ((button (confirm-program
+                     #:env `(("DISPLAY" . ,(pinentry-display pinentry)))
+                     #:visibility #t
+                     #:only-match #t
+                     #:buttons `(,(pinentry-ok-button pinentry)
+                                 ,(or (pinentry-notok-button pinentry)
+                                      (pinentry-cancel-button pinentry)))
+                     #:message (compose-message pinentry))))
+        (if (and button
+                 (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
               (format #t "ERR 277 Operation cancelled\n")
@@ -368,21 +388,19 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
               (set-pinentry-ok! pinentry #f)))))
      ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
           (set-and-return! regex-match (regexp-exec message-re line)))
-      (let ((pipe (open-pipe
-                   (string-join
-                    `("echo -e "
-                      ,(format #f "'~a'" (pinentry-ok-button pinentry))
-                      "|"
-                      ,(format #f "env DISPLAY=~a" (pinentry-display pinentry))
-                      "rofi -dmenu -disable-history -only-match -l 1 -i"
-                      ,(format #f "-p '>'")
-                      ,(format #f "-mesg ~s" (if (pinentry-error pinentry)
-                                                 (format #f "~a\n~a"
-                                                         (pinentry-error pinentry)
-                                                         (pinentry-desc pinentry))
-                                                 (pinentry-desc pinentry)))))
-                   OPEN_READ)))
-        (close-pipe pipe))))
+      (let ((button (confirm-program
+                     #:env `(("DISPLAY" . ,(pinentry-display pinentry)))
+                     #:visibility #t
+                     #:only-match #t
+                     #:buttons `(,(pinentry-ok-button pinentry))
+                     #:message (compose-message pinentry))))
+        (if (and button
+                 (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
+            (set-pinentry-ok! pinentry #t)
+            (begin
+              (format #t "ERR 277 Operation cancelled\n")
+              (force-output)
+              (set-pinentry-ok! pinentry #f))))))
     regex-match))
 
 (define (pinentry-bye pinentry line)
@@ -404,8 +422,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        ((pinentry-setnotok pinentry line))
        ((pinentry-setcancel pinentry line))
        ((pinentry-setprompt pinentry line))
-       ((pinentry-getpin pinentry line))
-       ((pinentry-confirm pinentry line))
+       ((pinentry-getpin pinentry line rofi-popup))
+       ((pinentry-confirm pinentry line rofi-popup))
        ((pinentry-seterror pinentry line))
        ((pinentry-bye pinentry line))
        (#t (begin
