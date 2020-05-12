@@ -69,6 +69,8 @@
 (test-equal "_Ok%0A_Cancel" (escape-underscore "__Ok%0A__Cancel"))
 (test-equal "_Ok&#10;_Cancel" (escape-underscore "__Ok&#10;__Cancel"))
 
+(test-assert (string-empty? ""))
+(test-assert (not (string-empty? "foo")))
 (test-end "utils")
 
 (test-equal "This is one line\nThis is another%OA"
@@ -294,7 +296,7 @@
                                                     buttons
                                                     only-match)
                                       (test-equal "Prompt" prompt)
-                                      (test-equal (format #f "~a\n~a" error description)
+                                      (test-equal (format #f "~a&#10;~a" error description)
                                         message)
                                       (test-assert (not visibility))
                                       (test-assert (not only-match))
@@ -302,6 +304,48 @@
                                       (test-equal `(("DISPLAY" . ,display)) env)
                                       "password")))
       (test-equal (format #f "D password") output)))
+
+  (set! output "")
+  (with-output-to-port
+      fake-port
+    (lambda ()
+      (test-assert (pinentry-getpin pinentry "GETPIN"
+                                    (lambda* (#:key (env '())
+                                                    visibility
+                                                    (prompt ">")
+                                                    message
+                                                    buttons
+                                                    only-match)
+                                      (test-equal "Prompt" prompt)
+                                      (test-equal (format #f "~a&#10;~a" error description)
+                                        message)
+                                      (test-assert (not visibility))
+                                      (test-assert (not only-match))
+                                      (test-assert (not buttons))
+                                      (test-equal `(("DISPLAY" . ,display)) env)
+                                      "")))
+      (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)))
+
+  (set! output "")
+  (with-output-to-port
+      fake-port
+    (lambda ()
+      (test-assert (pinentry-getpin pinentry "GETPIN"
+                                    (lambda* (#:key (env '())
+                                                    visibility
+                                                    (prompt ">")
+                                                    message
+                                                    buttons
+                                                    only-match)
+                                      (test-equal "Prompt" prompt)
+                                      (test-equal (format #f "~a&#10;~a" error description)
+                                        message)
+                                      (test-assert (not visibility))
+                                      (test-assert (not only-match))
+                                      (test-assert (not buttons))
+                                      (test-equal `(("DISPLAY" . ,display)) env)
+                                      "  ")))
+      (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)))
 
   (test-assert (not (pinentry-getinfo pinentry " GETPIN")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
@@ -350,7 +394,7 @@
                                       buttons
                                       only-match)
                         (test-equal ">" prompt)
-                        (test-equal (format #f "~a\n~a" error description)
+                        (test-equal (format #f "~a&#10;~a" error description)
                           message)
                         (test-assert visibility)
                         (test-assert only-match)

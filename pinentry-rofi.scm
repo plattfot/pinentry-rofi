@@ -52,6 +52,7 @@
             html-newline
             html-underline
             html-<
+            string-empty?
 
             hex->char
             input-string
