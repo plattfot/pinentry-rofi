@@ -353,7 +353,7 @@ Return the input from the user if succeeded else #f."
                                #:message (compose-message pinentry)
                                #:visibility (pinentry-visibility pinentry)
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
-        (if (not (string-empty? (string-trim-both pass)))
+        (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
               (format #t "D ~a" pass)
               (force-output)
