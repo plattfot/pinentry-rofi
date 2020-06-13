@@ -1,7 +1,3 @@
-#!/usr/bin/guile \
---no-auto-compile -l pinentry-rofi.scm -s
-!#
-
 ;;  Copyright © 2020 Fredrik "PlaTFooT" Salomonsson
 ;;
 ;;  Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,14 +18,13 @@
 ;;  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;;  THE SOFTWARE.
 
-
-(use-modules (srfi srfi-64)
-             (ice-9 popen)
-             (ice-9 textual-ports)
-             (pinentry-rofi))
+(define-module (tests-pinentry-rofi)
+  #:use-module (srfi srfi-64)
+  #:use-module (ice-9 popen)
+  #:use-module (ice-9 textual-ports)
+  #:use-module (pinentry-rofi))
 
 (test-begin "pinentry-rofi")
-(test-assert (string? pinentry-rofi-guile-version))
 
 (test-begin "pinentry")
 (let ((pinentry (make-pinentry #t "Prompt" "Ok" "Cancel" ":1" "test.log")))

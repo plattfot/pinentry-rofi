@@ -1,0 +1,35 @@
+2020-06-12 Fredrik Salomonsson <plattfot@gmail.com>
+	* 1.1.0:
+	Using Hall to handle the project.
+2020-05-11 Fredrik Salomonsson <plattfot@gmail.com>
+	* 1.0.2:
+	Fixed crash when rofi is aborted.
+2020-05-11 Fredrik Salomonsson <plattfot@gmail.com>
+	* 1.0.1:
+	Propper newline between error and description.
+	More unit test coverage.
+	Fixed hang when run via gpg, that was introduced in 1.0.0.
+2020-05-11 Fredrik Salomonsson <plattfot@gmail.com>
+	* 1.0.0:
+	Added unit tests.
+	Added support for popup.
+	Added support for underline characters in message.
+	Fixed high CPU usage bug - thanks to em0lar and n0emis.
+2020-04-21 Fredrik Salomonsson <plattfot@gmail.com>
+	* 0.5.0 :
+	Added support to ask again if password is wrong.
+2019-06-06 Fredrik Salomonsson <plattfot@gmail.com>
+	* 0.4.0 :
+	Removed compiling of script.
+	Behaves better with the REPL.
+2018-11-10 Fredrik Salomonsson <plattfot@gmail.com>
+	* 0.3.0 :
+	Removed dependency on systemd.
+	Works with gpg.
+	Removed conflict with pinentry-rofi.
+2018-11-04 Fredrik Salomonsson <plattfot@gmail.com>
+	* 0.2.0 :
+	Forcing the output.
+2018-11-04 Fredrik Salomonsson <plattfot@gmail.com>
+	* 0.1.0 :
+	Initial release. Matching functionality as the pinentry-rofi gist.

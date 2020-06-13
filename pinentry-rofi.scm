@@ -1,7 +1,3 @@
-#! /usr/bin/guile \
---no-auto-compile -e (pinentry-rofi) -s
-!#
-
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
 ;;  Copyright © 2018-2020 Fredrik "PlaTFooT" Salomonsson
 ;;
@@ -30,10 +26,7 @@
   #:use-module (srfi srfi-9) ;; For records
   #:use-module (ice-9 format)
   #:use-module (ice-9 regex)
-  #:use-module (ice-9 getopt-long)
-  #:export (main
-            pinentry-rofi-guile-version
-            make-pinentry
+  #:export (make-pinentry
             pinentry?
             pinentry-ok set-pinentry-ok!
             pinentry-prompt set-pinentry-prompt!
@@ -75,9 +68,6 @@
             pinentry-confirm
             pinentry-bye
             pinentry-loop))
-
-
-(define pinentry-rofi-guile-version "1.0.1")
 
 (when (equal? (system-file-name-convention) 'windows)
   (format #t "Only support posix systems!")
@@ -442,39 +432,3 @@ Return the input from the user if succeeded else #f."
         (format #t "OK\n")
         (force-output))
       (pinentry-loop pinentry input-port))))
-
-(define (main args)
-  (let* ((option-spec
-          '((display (single-char #\d) (value #t))
-            (xauthority (single-char #\a) (value #t))
-            (version (single-char #\v) (value #f))
-            (log (value #t))
-            (help (single-char #\h) (value #f))))
-         (default-display ":0")
-         (options (getopt-long (command-line) option-spec))
-         (pinentry (make-pinentry #t "Passphrase:" "Ok" "Cancel"
-                                  (option-ref options 'display default-display)
-                                  (let ((logfile (option-ref options 'log #f)))
-                                    (when logfile
-                                      (open-output-file
-                                       (format #f "~a.~a" logfile (getpid))))))))
-    (when (option-ref options 'help #f)
-      (format #t "\
-Usage: ~a [OPTIONS]
-Options:
-  -d, --display DISPLAY Set display, default is ~s.
-      --log LOGFILE     Log unknown commands to LOGFILE
-  -v, --version         Display version.
-  -h, --help            Display this help.
-Author:
-Fredrik \"PlaTFooT\" Salomonsson
-"
-              (car (command-line))
-              default-display)
-      (exit #t))
-    (when (option-ref options 'version #f)
-      (format #t "pinentry-rofi-guile version ~a\n" pinentry-rofi-guile-version)
-      (exit #t))
-    (format #t "OK Please go ahead\n")
-    (force-output)
-    (pinentry-loop pinentry (current-input-port))))
