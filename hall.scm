@@ -11,9 +11,7 @@
     "https://github.com/plattfot/pinentry-rofi/")
   (license gpl3+)
   (dependencies `())
-  (files (libraries
-           ((scheme-file "pinentry-rofi")
-            (directory "pinentry-rofi" ())))
+  (files (libraries ((scheme-file "pinentry-rofi")))
          (tests ((directory
                    "tests"
                    ((scheme-file "pinentry-rofi")))))
@@ -25,7 +23,6 @@
             (text-file "HACKING")
             (text-file "COPYING")
             (directory "doc" ((texi-file "pinentry-rofi")))
-            (text-file "ChangeLog")
             (text-file "ChangeLog")))
          (infrastructure
            ((scheme-file "guix") (scheme-file "hall")))))

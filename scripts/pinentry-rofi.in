@@ -25,7 +25,7 @@
 
 (use-modules (ice-9 getopt-long)
              (ice-9 format)
-             (pinentry-rofi pinentry-rofi))
+             (pinentry-rofi))
 (define (main args)
   (let* ((option-spec
           '((display (single-char #\d) (value #t))
