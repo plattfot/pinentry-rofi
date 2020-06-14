@@ -203,7 +203,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
      ((set-and-return! regex-match (regexp-exec option-re line))))
     regex-match))
 
-(define (pinentry-getinfo pinentry line)
+(define* (pinentry-getinfo pinentry line #:key (port #t))
   "Process line if it starts with GETINFO"
   (let ((getinfo-re (make-regexp "^GETINFO (.+)$"))
         (regex-match #f))
@@ -211,8 +211,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
       (let ((info (match:substring regex-match 1)))
         (cond
          ((string=? info "pid")
-          (format #t "D ~a\n" (getpid))
-          (force-output))))
+          (format port "D ~a\n" (getpid))
+          (force-output port))))
       (set-pinentry-ok! pinentry #t))
     regex-match))
 
@@ -334,7 +334,7 @@ Return the input from the user if succeeded else #f."
               (pinentry-desc pinentry))
       (pinentry-desc pinentry)))
 
-(define (pinentry-getpin pinentry line pin-program)
+(define* (pinentry-getpin pinentry line pin-program #:key (port #t))
   "Get pin using PIN-PROGRAM if LINE is equal to GETPIN."
   (let ((getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
@@ -345,16 +345,16 @@ Return the input from the user if succeeded else #f."
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
-              (format #t "D ~a" pass)
-              (force-output)
+              (format port "D ~a" pass)
+              (force-output port)
               (set-pinentry-ok! pinentry #t))
             (begin
-              (format #t "ERR 83886179 Operation cancelled <rofi>\n")
-              (force-output)
+              (format port "ERR 83886179 Operation cancelled <rofi>\n")
+              (force-output port)
               (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
-(define (pinentry-confirm pinentry line confirm-program)
+(define* (pinentry-confirm pinentry line confirm-program #:key (port #t))
   (let ((confirm-re (make-regexp "^CONFIRM$"))
         (confirm-one-button-re
          (make-regexp "^CONFIRM[[:blank:]]+--one-button[[:blank:]]*$"))
@@ -376,8 +376,8 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format #t "ERR 277 Operation cancelled\n")
-              (force-output)
+              (format port "ERR 277 Operation cancelled\n")
+              (force-output port)
               (set-pinentry-ok! pinentry #f)))))
      ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
           (set-and-return! regex-match (regexp-exec message-re line)))
@@ -391,8 +391,8 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format #t "ERR 277 Operation cancelled\n")
-              (force-output)
+              (format port "ERR 277 Operation cancelled\n")
+              (force-output port)
               (set-pinentry-ok! pinentry #f))))))
     regex-match))
 
