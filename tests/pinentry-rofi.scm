@@ -144,12 +144,8 @@
                    #f
                    (lambda () #t))
                   "w")))
-  (with-output-to-port
-      fake-port
-    (lambda ()
-      (test-assert (pinentry-getinfo pinentry "GETINFO pid"))
-      (test-equal (format #f "D ~a\n" (getpid)) output)))
-
+  (test-assert (pinentry-getinfo pinentry "GETINFO pid" #:port fake-port))
+  (test-equal (format #f "D ~a\n" (getpid)) output)
   (test-assert (pinentry-getinfo pinentry "GETINFO foo bar"))
   (test-assert (not (pinentry-getinfo pinentry " GETINFO foo bar")))
   (test-assert (not (pinentry-getinfo pinentry "GETINFO")))
@@ -259,89 +255,77 @@
        (display ":1"))
   (set-pinentry-desc! pinentry description)
   (set-pinentry-display! pinentry display)
-  (with-output-to-port
-      fake-port
-    (lambda ()
-      (test-assert (pinentry-getpin pinentry "GETPIN"
-                                    (lambda* (#:key (env '())
-                                                    visibility
-                                                    (prompt ">")
-                                                    message
-                                                    buttons
-                                                    only-match)
-                                      (test-equal "Prompt" prompt)
-                                      (test-equal description message)
-                                      (test-assert (not visibility))
-                                      (test-assert (not only-match))
-                                      (test-assert (not buttons))
-                                      (test-equal `(("DISPLAY" . ,display)) env)
-                                      "password")))
-      (test-equal (format #f "D password") output)))
-
+  (test-assert (pinentry-getpin pinentry "GETPIN"
+                                (lambda* (#:key (env '())
+                                          visibility
+                                          (prompt ">")
+                                          message
+                                          buttons
+                                          only-match)
+                                  (test-equal "Prompt" prompt)
+                                  (test-equal description message)
+                                  (test-assert (not visibility))
+                                  (test-assert (not only-match))
+                                  (test-assert (not buttons))
+                                  (test-equal `(("DISPLAY" . ,display)) env)
+                                  "password")
+                                #:port fake-port))
+  (test-equal (format #f "D password") output)
   (set-pinentry-error! pinentry error)
   (set! output "")
-  (with-output-to-port
-      fake-port
-    (lambda ()
-      (test-assert (pinentry-getpin pinentry "GETPIN"
-                                    (lambda* (#:key (env '())
-                                                    visibility
-                                                    (prompt ">")
-                                                    message
-                                                    buttons
-                                                    only-match)
-                                      (test-equal "Prompt" prompt)
-                                      (test-equal (format #f "~a&#10;~a" error description)
-                                        message)
-                                      (test-assert (not visibility))
-                                      (test-assert (not only-match))
-                                      (test-assert (not buttons))
-                                      (test-equal `(("DISPLAY" . ,display)) env)
-                                      "password")))
-      (test-equal (format #f "D password") output)))
-
+  (test-assert (pinentry-getpin pinentry "GETPIN"
+                                (lambda* (#:key (env '())
+                                          visibility
+                                          (prompt ">")
+                                          message
+                                          buttons
+                                          only-match)
+                                  (test-equal "Prompt" prompt)
+                                  (test-equal (format #f "~a&#10;~a" error description)
+                                    message)
+                                  (test-assert (not visibility))
+                                  (test-assert (not only-match))
+                                  (test-assert (not buttons))
+                                  (test-equal `(("DISPLAY" . ,display)) env)
+                                  "password")
+                                #:port fake-port))
+  (test-equal (format #f "D password") output)
   (set! output "")
-  (with-output-to-port
-      fake-port
-    (lambda ()
-      (test-assert (pinentry-getpin pinentry "GETPIN"
-                                    (lambda* (#:key (env '())
-                                                    visibility
-                                                    (prompt ">")
-                                                    message
-                                                    buttons
-                                                    only-match)
-                                      (test-equal "Prompt" prompt)
-                                      (test-equal (format #f "~a&#10;~a" error description)
-                                        message)
-                                      (test-assert (not visibility))
-                                      (test-assert (not only-match))
-                                      (test-assert (not buttons))
-                                      (test-equal `(("DISPLAY" . ,display)) env)
-                                      "")))
-      (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)))
-
+  (test-assert (pinentry-getpin pinentry "GETPIN"
+                                (lambda* (#:key (env '())
+                                          visibility
+                                          (prompt ">")
+                                          message
+                                          buttons
+                                          only-match)
+                                  (test-equal "Prompt" prompt)
+                                  (test-equal (format #f "~a&#10;~a" error description)
+                                    message)
+                                  (test-assert (not visibility))
+                                  (test-assert (not only-match))
+                                  (test-assert (not buttons))
+                                  (test-equal `(("DISPLAY" . ,display)) env)
+                                  "")
+                                #:port fake-port))
+  (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)
   (set! output "")
-  (with-output-to-port
-      fake-port
-    (lambda ()
-      (test-assert (pinentry-getpin pinentry "GETPIN"
-                                    (lambda* (#:key (env '())
-                                                    visibility
-                                                    (prompt ">")
-                                                    message
-                                                    buttons
-                                                    only-match)
-                                      (test-equal "Prompt" prompt)
-                                      (test-equal (format #f "~a&#10;~a" error description)
-                                        message)
-                                      (test-assert (not visibility))
-                                      (test-assert (not only-match))
-                                      (test-assert (not buttons))
-                                      (test-equal `(("DISPLAY" . ,display)) env)
-                                      "  ")))
-      (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)))
-
+  (test-assert (pinentry-getpin pinentry "GETPIN"
+                                (lambda* (#:key (env '())
+                                          visibility
+                                          (prompt ">")
+                                          message
+                                          buttons
+                                          only-match)
+                                  (test-equal "Prompt" prompt)
+                                  (test-equal (format #f "~a&#10;~a" error description)
+                                    message)
+                                  (test-assert (not visibility))
+                                  (test-assert (not only-match))
+                                  (test-assert (not buttons))
+                                  (test-equal `(("DISPLAY" . ,display)) env)
+                                  "  ")
+                                #:port fake-port))
+  (test-equal (format #f "ERR 83886179 Operation cancelled <rofi>\n") output)
   (test-assert (not (pinentry-getinfo pinentry " GETPIN")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
 
@@ -376,27 +360,25 @@
                       #f
                       (lambda () #t))
                      "w")))
-    (with-output-to-port
-        fake-port
-      (lambda ()
-        (test-assert (pinentry-confirm
-                      pinentry
-                      "CONFIRM"
-                      (lambda* (#:key (env '())
-                                      visibility
-                                      (prompt ">")
-                                      message
-                                      buttons
-                                      only-match)
-                        (test-equal ">" prompt)
-                        (test-equal (format #f "~a&#10;~a" error description)
-                          message)
-                        (test-assert visibility)
-                        (test-assert only-match)
-                        (test-equal `("Ok" "Cancel") buttons)
-                        (test-equal `(("DISPLAY" . ,display)) env)
-                        "Cancel")))
-        (test-equal (format #f "ERR 277 Operation cancelled\n") output))))
+    (test-assert (pinentry-confirm
+                  pinentry
+                  "CONFIRM"
+                  (lambda* (#:key (env '())
+                            visibility
+                            (prompt ">")
+                            message
+                            buttons
+                            only-match)
+                    (test-equal ">" prompt)
+                    (test-equal (format #f "~a&#10;~a" error description)
+                      message)
+                    (test-assert visibility)
+                    (test-assert only-match)
+                    (test-equal `("Ok" "Cancel") buttons)
+                    (test-equal `(("DISPLAY" . ,display)) env)
+                    "Cancel")
+                  #:port fake-port))
+    (test-equal (format #f "ERR 277 Operation cancelled\n") output))
   (test-assert (not (pinentry-ok pinentry)))
   (test-assert (not (pinentry-getinfo pinentry " CONFIRM")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
