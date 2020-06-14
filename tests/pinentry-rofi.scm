@@ -26,7 +26,7 @@
 
 (test-begin "pinentry-rofi")
 
-(test-begin "pinentry")
+;; (test-begin "pinentry")
 (let ((pinentry (make-pinentry #t "Prompt" "Ok" "Cancel" ":1" "test.log")))
   (test-assert (pinentry? pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -42,9 +42,9 @@
 (let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log")))
   (test-assert (not (pinentry-ok pinentry))))
 
-(test-end "pinentry")
+;; (test-end "pinentry")
 
-(test-begin "utils")
+;; (test-begin "utils")
 
 (test-equal "Ok" (remove-underline "_Ok"))
 (test-equal " Ok" (remove-underline " _Ok"))
@@ -66,12 +66,12 @@
 
 (test-assert (string-empty? ""))
 (test-assert (not (string-empty? "foo")))
-(test-end "utils")
+;; (test-end "utils")
 
 (test-equal "This is one line\nThis is another%OA"
   (hex->char "%54his is one line%0AThis is another%OA"))
 
-(test-begin "html")
+;; (test-begin "html")
 (test-equal "%54his is one line&#10;This is another%OA"
   (html-newline "%54his is one line%0AThis is another%OA"))
 (test-equal "%54his is one line\nThis is another%OA"
@@ -86,7 +86,7 @@
 (test-equal "<u>O</u>k%0A<u>C</u>ancel" (html-underline "_Ok%0A_Cancel"))
 (test-equal "<u>O</u>k&#10;<u>C</u>ancel" (html-underline "_Ok&#10;_Cancel"))
 
-(test-end "html")
+;; (test-end "html")
 
 (test-equal "<u>T</u>his is one line&#10;<u>T</u>his is another%OA"
   (pango-markup "_%54his is one line%0A_This is another%OA"))
