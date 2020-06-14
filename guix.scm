@@ -12,8 +12,8 @@
 
 (package
   (name "pinentry-rofi")
-  (version "1.1.0")
-  (source "./pinentry-rofi-1.1.0.tar.gz")
+  (version "2.0.0")
+  (source "./pinentry-rofi-2.0.0.tar.gz")
   (build-system gnu-build-system)
   (arguments
     `(#:modules
