@@ -16,7 +16,7 @@
 * 2.0.0 Breaking changes please read
 
   As of version 2.0.0, =pinentry-rofi= is now built using [[https://www.gnu.org/software/automake][automake]].
-  See [[file:HACKING][HACKING]] for more info on that. It also lost its =-guile= prefix
+  See [[file:HACKING][HACKING]] for more info on that. It also lost its =-guile= suffix
   for the executable. And it is no longer just one file, most of its
   content is now a [[https://www.gnu.org/software/guile/manual/html_node/General-Information-about-Modules.html][guile module]], which the executable now calls.
 
