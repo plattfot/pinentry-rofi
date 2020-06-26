@@ -20,6 +20,8 @@
          (documentation
            ((org-file "README")
             (symlink "README" "README.org")
+            (text-file "AUTHORS")
+            (text-file "NEWS")
             (text-file "HACKING")
             (text-file "COPYING")
             (directory "doc" ((texi-file "pinentry-rofi")))
