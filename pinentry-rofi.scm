@@ -1,7 +1,3 @@
-#! /usr/bin/guile \
---no-auto-compile -e (pinentry-rofi) -s
-!#
-
 ;;  Copyright © 2016 Quentin "Sardem FF7" Glidic
 ;;  Copyright © 2018-2020 Fredrik "PlaTFooT" Salomonsson
 ;;
@@ -30,10 +26,7 @@
   #:use-module (srfi srfi-9) ;; For records
   #:use-module (ice-9 format)
   #:use-module (ice-9 regex)
-  #:use-module (ice-9 getopt-long)
-  #:export (main
-            pinentry-rofi-guile-version
-            make-pinentry
+  #:export (make-pinentry
             pinentry?
             pinentry-ok set-pinentry-ok!
             pinentry-prompt set-pinentry-prompt!
@@ -75,9 +68,6 @@
             pinentry-confirm
             pinentry-bye
             pinentry-loop))
-
-
-(define pinentry-rofi-guile-version "1.0.1")
 
 (when (equal? (system-file-name-convention) 'windows)
   (format #t "Only support posix systems!")
@@ -213,7 +203,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
      ((set-and-return! regex-match (regexp-exec option-re line))))
     regex-match))
 
-(define (pinentry-getinfo pinentry line)
+(define* (pinentry-getinfo pinentry line #:key (port #t))
   "Process line if it starts with GETINFO"
   (let ((getinfo-re (make-regexp "^GETINFO (.+)$"))
         (regex-match #f))
@@ -221,8 +211,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
       (let ((info (match:substring regex-match 1)))
         (cond
          ((string=? info "pid")
-          (format #t "D ~a\n" (getpid))
-          (force-output))))
+          (format port "D ~a~%~!" (getpid)))))
       (set-pinentry-ok! pinentry #t))
     regex-match))
 
@@ -344,7 +333,7 @@ Return the input from the user if succeeded else #f."
               (pinentry-desc pinentry))
       (pinentry-desc pinentry)))
 
-(define (pinentry-getpin pinentry line pin-program)
+(define* (pinentry-getpin pinentry line pin-program #:key (port #t))
   "Get pin using PIN-PROGRAM if LINE is equal to GETPIN."
   (let ((getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
@@ -355,16 +344,14 @@ Return the input from the user if succeeded else #f."
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
-              (format #t "D ~a" pass)
-              (force-output)
+              (format port "D ~a~!" pass)
               (set-pinentry-ok! pinentry #t))
             (begin
-              (format #t "ERR 83886179 Operation cancelled <rofi>\n")
-              (force-output)
+              (format port "ERR 83886179 Operation cancelled <rofi>~%~!")
               (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
-(define (pinentry-confirm pinentry line confirm-program)
+(define* (pinentry-confirm pinentry line confirm-program #:key (port #t))
   (let ((confirm-re (make-regexp "^CONFIRM$"))
         (confirm-one-button-re
          (make-regexp "^CONFIRM[[:blank:]]+--one-button[[:blank:]]*$"))
@@ -386,8 +373,7 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format #t "ERR 277 Operation cancelled\n")
-              (force-output)
+              (format port "ERR 277 Operation cancelled~%~!")
               (set-pinentry-ok! pinentry #f)))))
      ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
           (set-and-return! regex-match (regexp-exec message-re line)))
@@ -401,8 +387,7 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format #t "ERR 277 Operation cancelled\n")
-              (force-output)
+              (format port "ERR 277 Operation cancelled~%~!")
               (set-pinentry-ok! pinentry #f))))))
     regex-match))
 
@@ -432,49 +417,10 @@ Return the input from the user if succeeded else #f."
        (#t (begin
              (let ((log (pinentry-logfile pinentry)))
                (when (file-port? log)
-                 (format log "Unknown command: ~s\n" line)
-                 (force-output log)))
+                 (format log "Unknown command: ~s~%~!" line)))
               ;; GPG_ERR_ASS_UNKNOWN_CMD = 275,
-             (format #t "ERR 275 Unknown command ~s\n" line)
-             (force-output)
+             (format #t "ERR 275 Unknown command ~s~%~!" line)
              (set-pinentry-ok! pinentry #f))))
       (when (pinentry-ok pinentry)
-        (format #t "OK\n")
-        (force-output))
+        (format #t "OK~%~!"))
       (pinentry-loop pinentry input-port))))
-
-(define (main args)
-  (let* ((option-spec
-          '((display (single-char #\d) (value #t))
-            (xauthority (single-char #\a) (value #t))
-            (version (single-char #\v) (value #f))
-            (log (value #t))
-            (help (single-char #\h) (value #f))))
-         (default-display ":0")
-         (options (getopt-long (command-line) option-spec))
-         (pinentry (make-pinentry #t "Passphrase:" "Ok" "Cancel"
-                                  (option-ref options 'display default-display)
-                                  (let ((logfile (option-ref options 'log #f)))
-                                    (when logfile
-                                      (open-output-file
-                                       (format #f "~a.~a" logfile (getpid))))))))
-    (when (option-ref options 'help #f)
-      (format #t "\
-Usage: ~a [OPTIONS]
-Options:
-  -d, --display DISPLAY Set display, default is ~s.
-      --log LOGFILE     Log unknown commands to LOGFILE
-  -v, --version         Display version.
-  -h, --help            Display this help.
-Author:
-Fredrik \"PlaTFooT\" Salomonsson
-"
-              (car (command-line))
-              default-display)
-      (exit #t))
-    (when (option-ref options 'version #f)
-      (format #t "pinentry-rofi-guile version ~a\n" pinentry-rofi-guile-version)
-      (exit #t))
-    (format #t "OK Please go ahead\n")
-    (force-output)
-    (pinentry-loop pinentry (current-input-port))))

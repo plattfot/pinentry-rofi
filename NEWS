@@ -1,0 +1,15 @@
+# -*- mode: org; coding: utf-8; -*-
+
+#+TITLE: Pinentry-Rofi NEWS – history of user-visible changes
+#+STARTUP: content hidestars
+
+Copyright © (2020) Fredrik Salomonsson <plattfot@gmail.com>
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
+
+Please file bugs for pinentry-rofi at [[https://github.com/plattfot/pinentry-rofi]]
+
+Please see the [[file:ChangeLog][ChangeLog]] for what changed in pinentry-rofi.
+
