@@ -211,8 +211,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
       (let ((info (match:substring regex-match 1)))
         (cond
          ((string=? info "pid")
-          (format port "D ~a\n" (getpid))
-          (force-output port))))
+          (format port "D ~a~%~!" (getpid)))))
       (set-pinentry-ok! pinentry #t))
     regex-match))
 
@@ -345,12 +344,10 @@ Return the input from the user if succeeded else #f."
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
-              (format port "D ~a" pass)
-              (force-output port)
+              (format port "D ~a~!" pass)
               (set-pinentry-ok! pinentry #t))
             (begin
-              (format port "ERR 83886179 Operation cancelled <rofi>\n")
-              (force-output port)
+              (format port "ERR 83886179 Operation cancelled <rofi>~%~!")
               (set-pinentry-ok! pinentry #f)))))
     regex-match))
 
@@ -376,8 +373,7 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format port "ERR 277 Operation cancelled\n")
-              (force-output port)
+              (format port "ERR 277 Operation cancelled~%~!")
               (set-pinentry-ok! pinentry #f)))))
      ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
           (set-and-return! regex-match (regexp-exec message-re line)))
@@ -391,8 +387,7 @@ Return the input from the user if succeeded else #f."
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
             (begin
-              (format port "ERR 277 Operation cancelled\n")
-              (force-output port)
+              (format port "ERR 277 Operation cancelled~%~!")
               (set-pinentry-ok! pinentry #f))))))
     regex-match))
 
@@ -422,13 +417,10 @@ Return the input from the user if succeeded else #f."
        (#t (begin
              (let ((log (pinentry-logfile pinentry)))
                (when (file-port? log)
-                 (format log "Unknown command: ~s\n" line)
-                 (force-output log)))
+                 (format log "Unknown command: ~s~%~!" line)))
               ;; GPG_ERR_ASS_UNKNOWN_CMD = 275,
-             (format #t "ERR 275 Unknown command ~s\n" line)
-             (force-output)
+             (format #t "ERR 275 Unknown command ~s~%~!" line)
              (set-pinentry-ok! pinentry #f))))
       (when (pinentry-ok pinentry)
-        (format #t "OK\n")
-        (force-output))
+        (format #t "OK~%~!"))
       (pinentry-loop pinentry input-port))))
