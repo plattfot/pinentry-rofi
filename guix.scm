@@ -1,19 +1,26 @@
 (use-modules
   (guix packages)
   ((guix licenses) #:prefix license:)
-  (guix download)
+  (guix git-download)
   (guix build-system gnu)
   (gnu packages)
   (gnu packages autotools)
   (gnu packages guile)
   (gnu packages guile-xyz)
   (gnu packages pkg-config)
-  (gnu packages texinfo))
+  (gnu packages texinfo)
+  (gnu packages xdisorg))
 
 (package
   (name "pinentry-rofi")
-  (version "2.0.0")
-  (source "./pinentry-rofi-2.0.0.tar.gz")
+  (version "2.0.1")
+  (source (origin
+            (method git-fetch)
+            (uri (git-reference
+                  (url "https://github.com/plattfot/pinentry-rofi/")
+                  (commit version)))
+            (file-name (git-file-name name version))
+            (sha256 (base32 "044bnldz7k74s873jwsjgff176l1jsvpbaka7d1wcj8b5pwqv2av"))))
   (build-system gnu-build-system)
   (arguments
     `(#:modules
@@ -51,7 +58,7 @@
                                           (string-append
                                             (assoc-ref inputs input)
                                             path))
-                                        ,''())))))
+                                        ,''("rofi"))))))
                    (out (assoc-ref outputs "out"))
                    (bin (string-append out "/bin/"))
                    (site (uncompiled-dir out "")))
@@ -77,7 +84,7 @@
       ("pkg-config" ,pkg-config)
       ("texinfo" ,texinfo)))
   (inputs `(("guile" ,guile-3.0)))
-  (propagated-inputs `())
+  (propagated-inputs `(("rofi" ,rofi)))
   (synopsis "Rofi frontend to pinentry")
   (description
     "Simple pinentry gui using rofi, it is written in GNU guile.")
