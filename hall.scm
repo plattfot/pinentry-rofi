@@ -1,7 +1,7 @@
 (hall-description
   (name "pinentry-rofi")
   (prefix "")
-  (version "2.0.0")
+  (version "2.0.1")
   (author "Fredrik Salomonsson")
   (copyright (2020))
   (synopsis "Rofi frontend to pinentry")
@@ -10,7 +10,7 @@
   (home-page
     "https://github.com/plattfot/pinentry-rofi/")
   (license gpl3+)
-  (dependencies `())
+  (dependencies `(("rofi" ,rofi)))
   (files (libraries ((scheme-file "pinentry-rofi")))
          (tests ((directory
                    "tests"
