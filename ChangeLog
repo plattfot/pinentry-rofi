@@ -1,3 +1,6 @@
+2020-10-09 Fredrik Salomonsson <plattfot@gmail.com>
+	* 2.0.1:
+	Update guix.scm to build from github.
 2020-06-14 Fredrik Salomonsson <plattfot@gmail.com>
 	* 2.0.0:
 	Using Hall to handle the project.
