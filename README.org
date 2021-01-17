@@ -5,7 +5,7 @@
 * Description
   Based on [[https://gist.github.com/sardemff7/759cbf956bea20d382a6128c641d2746][this gist]]
 
-  Simple pinentry gui using rofi written in GNU guile.
+  Simple [[https://www.gnupg.org/related_software/pinentry/index.html][pinentry]] gui using [[https://github.com/davatorium/rofi][rofi]] written in [[https://www.gnu.org/software/guile/][GNU guile]].
 
   It's similar in functionality as the gist but this one doesn't force
   the width to be 27 and doesn't depend on systemd.
@@ -21,15 +21,34 @@
   content is now a [[https://www.gnu.org/software/guile/manual/html_node/General-Information-about-Modules.html][guile module]], which the executable now calls.
 
 * Install
-** From Source
+** Guix (Recommended)
+   To install it using [[https://guix.gnu.org/][guix]], run
+   #+begin_src shell
+     guix install pinentry-rofi
+   #+end_src
 
-  See [[file:HACKING][HACKING]] on how to build this from source
+   Just make sure you have a version of `guix` that is newer than Jan
+   8 2021.
+
+   The binary location is then `$HOME/.guix-profile/bin/pinentry-rofi`
+   were the `$HOME` is the home location of the user you used to
+   install it with. E.g. `/home/$USER` for a normal user and `/root`
+   for the root user.
+
+   Install it with guix is recommended as that will work on most linux
+   distributions.
 
 ** Arch Linux
-   Clone my aur reop and the build the package using the PKGBUILD:
+   Clone my aur repo and the build the package using the PKGBUILD:
 
-   #+begin_src bash
+   #+begin_src shell
      git clone https://github.com/plattfot/pinentry-rofi-aur.git
      cd pinentry-rofi-aur
      makepkg -ic
    #+end_src
+
+   The binary location is then `/usr/bin/pinentry-rofi`.
+** From Source
+
+  See [[file:HACKING][HACKING]] on how to build this from source
+
