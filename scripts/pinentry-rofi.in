@@ -23,6 +23,10 @@
 ;;  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ;;  THE SOFTWARE.
 
+(eval-when (load expand eval)
+  (set! %load-path (cons "@guilemoduledir@" %load-path))
+  (set! %load-compiled-path (cons "@guileobjectdir@" %load-compiled-path)))
+
 (use-modules (ice-9 getopt-long)
              (ice-9 format)
              (pinentry-rofi))
