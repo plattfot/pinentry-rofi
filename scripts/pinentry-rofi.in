@@ -1,4 +1,4 @@
-#! /usr/bin/guile \
+#! @GUILE@ \
 --no-auto-compile -e main -s
 !#
 ;; bin/pinentry-rofi --- pinentry-rofi cli -*- coding: utf-8 -*-
