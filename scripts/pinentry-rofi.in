@@ -50,13 +50,14 @@ Options:
   -v, --version         Display version.
   -h, --help            Display this help.
 Author:
-@AUTHOR@
+~a
 "
               (car (command-line))
-              default-display)
+              default-display
+              @AUTHOR@)
       (exit #t))
     (when (option-ref options 'version #f)
-      (format #t "@HVERSION@\n")
+      (format #t "~a~%" @HVERSION@)
       (exit #t))
     (format #t "OK Please go ahead\n")
     (force-output)
