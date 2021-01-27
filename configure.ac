@@ -1,8 +1,8 @@
 
 dnl -*- Autoconf -*-
 
-AC_INIT(pinentry-rofi, 2.0.0)
-AC_SUBST(HVERSION, "\"2.0.0\"")
+AC_INIT(pinentry-rofi, 2.0.2)
+AC_SUBST(HVERSION, "\"2.0.2\"")
 AC_SUBST(AUTHOR, "\"Fredrik Salomonsson\"")
 AC_SUBST(COPYRIGHT, "'(2020)")
 AC_SUBST(LICENSE, gpl3+)
