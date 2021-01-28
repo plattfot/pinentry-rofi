@@ -1,3 +1,8 @@
+2021-01-27 Fredrik Salomonsson <plattfot@posteo.net>
+	* 2.0.2:
+	Update guix.scm to build from source.
+	Add search paths to guile's module and object directory in the executable.
+	Fix issue with --version.
 2020-10-09 Fredrik Salomonsson <plattfot@gmail.com>
 	* 2.0.1:
 	Update guix.scm to build from github.
