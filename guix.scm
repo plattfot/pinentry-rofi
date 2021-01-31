@@ -60,6 +60,7 @@
                   #t))))))))
     (native-inputs
      `(("autoconf" ,autoconf)
+       ("autoconf-archive" ,autoconf-archive)
        ("automake" ,automake)
        ("pkg-config" ,pkg-config)
        ("texinfo" ,texinfo)))

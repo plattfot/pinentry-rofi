@@ -7,6 +7,8 @@ do_subst = $(SED)					\
   -e 's,[@]GUILE[@],$(GUILE),g'				\
   -e 's,[@]guilemoduledir[@],$(guilemoduledir),g'	\
   -e 's,[@]guileobjectdir[@],$(guileobjectdir),g'	\
+  -e 's,[@]GUILE_OBJECT_DIR[@],$(prefix)/$(GUILE_OBJECT_DIR),g'	\
+  -e 's,[@]GUILE_MODULE_DIR[@],$(exec_prefix)/$(GUILE_MODULE_DIR),g'	\
   -e 's,[@]localedir[@],$(localedir),g'
 
 nodist_noinst_SCRIPTS = pre-inst-env
