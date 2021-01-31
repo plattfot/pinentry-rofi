@@ -73,22 +73,29 @@ the Rofi application launcher as the user interface.  Which makes it combined
 with @code{rofi-pass} a good front end for @code{password-store}.")
     (home-page "https://github.com/plattfot/pinentry-rofi/")
     (license license:gpl3+)))
-
-(list
- (package
+(package
    (inherit pinentry-rofi)
    (name "pinentry-rofi-git")
    (version (git-version (package-version pinentry-rofi) "HEAD" %git-commit))
    (source (local-file %source-dir
                        #:recursive? #t
                        #:select? skip-git-directory)))
- (package
-   (inherit pinentry-rofi)
-   (name "pinentry-rofi-git-with-guile-2.2")
-   (version (git-version (package-version pinentry-rofi) "HEAD" %git-commit))
-   (source (local-file %source-dir
-                       #:recursive? #t
-                       #:select? skip-git-directory))
-   (inputs `(("guile" ,guile-2.2)
-             ("rofi" ,rofi))))
- )
+
+;; (list
+;;  (package
+;;    (inherit pinentry-rofi)
+;;    (name "pinentry-rofi-git")
+;;    (version (git-version (package-version pinentry-rofi) "HEAD" %git-commit))
+;;    (source (local-file %source-dir
+;;                        #:recursive? #t
+;;                        #:select? skip-git-directory)))
+;;  (package
+;;    (inherit pinentry-rofi)
+;;    (name "pinentry-rofi-git-with-guile-2.2")
+;;    (version (git-version (package-version pinentry-rofi) "HEAD" %git-commit))
+;;    (source (local-file %source-dir
+;;                        #:recursive? #t
+;;                        #:select? skip-git-directory))
+;;    (inputs `(("guile" ,guile-2.2)
+;;              ("rofi" ,rofi))))
+;;  )
