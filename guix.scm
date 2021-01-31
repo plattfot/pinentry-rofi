@@ -77,7 +77,7 @@ with @code{rofi-pass} a good front end for @code{password-store}.")
 (list
  (package
    (inherit pinentry-rofi)
-   (name "pinentry-rofi-git-with-guile-3.0")
+   (name "pinentry-rofi-git")
    (version (git-version (package-version pinentry-rofi) "HEAD" %git-commit))
    (source (local-file %source-dir
                        #:recursive? #t
