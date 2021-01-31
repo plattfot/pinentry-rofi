@@ -21,9 +21,10 @@
 (define %git-commit
   (read-string (open-pipe "git show HEAD | head -1 | cut -d ' ' -f2" OPEN_READ)))
 
-(define (skip-git-directory file stat)
-  "Skip the `.git` directory when collecting the source."
-  (not (string=? (basename file) ".git")))
+(define (skip-git-and-build-directory file stat)
+  "Skip the `.git` and `build` directory when collecting the sources."
+  (let ((name (basename file)))
+    (not (or (string=? name ".git") (string=? name "build")))))
 
 (define-public pinentry-rofi
   (package
@@ -76,6 +77,7 @@ the Rofi application launcher as the user interface.  Which makes it combined
 with @code{rofi-pass} a good front end for @code{password-store}.")
     (home-page "https://github.com/plattfot/pinentry-rofi/")
     (license license:gpl3+)))
+
 (package
   (inherit pinentry-rofi)
   (name "pinentry-rofi-git")
