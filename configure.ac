@@ -32,4 +32,9 @@ guileobjectdir="${libdir}/guile/$GUILE_EFFECTIVE_VERSION/site-ccache"
 AC_SUBST([guilemoduledir])
 AC_SUBST([guileobjectdir])
 
+AX_COMPUTE_RELATIVE_PATHS([bindir:guilemoduledir:GUILE_MODULE_DIR bindir:guileobjectdir:GUILE_OBJECT_DIR])
+
+AC_SUBST([GUILE_MODULE_DIR])
+AC_SUBST([GUILE_OBJECT_DIR])
+
 AC_OUTPUT

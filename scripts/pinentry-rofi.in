@@ -24,8 +24,10 @@
 ;;  THE SOFTWARE.
 
 (eval-when (load expand eval)
-  (set! %load-path (cons "@guilemoduledir@" %load-path))
-  (set! %load-compiled-path (cons "@guileobjectdir@" %load-compiled-path)))
+  (set! %load-path
+    (cons (format #f "~a/@GUILE_MODULE_DIR@" (dirname (current-filename))) %load-path))
+  (set! %load-compiled-path
+    (cons (format #f "~a/@GUILE_OBJECT_DIR@" (dirname (current-filename))) %load-compiled-path)))
 
 (use-modules (ice-9 getopt-long)
              (ice-9 format)
