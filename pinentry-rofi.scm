@@ -38,6 +38,8 @@
             pinentry-ok-button set-pinentry-ok-button!
             pinentry-notok-button set-pinentry-notok-button!
             pinentry-cancel-button set-pinentry-cancel-button!
+            pinentry-lc-ctype set-pinentry-lc-ctype!
+            pinentry-lc-messages set-pinentry-lc-messages!
 
             remove-underline
             escape-underscore
@@ -74,7 +76,7 @@
   (exit #f))
 
 (define-record-type <pinentry>
-  (make-pinentry ok prompt ok-button cancel-button display logfile)
+  (make-pinentry ok prompt ok-button cancel-button display logfile lc-ctype lc-messages)
   pinentry?
   (ok pinentry-ok set-pinentry-ok!)
   (prompt pinentry-prompt set-pinentry-prompt!)
@@ -85,7 +87,9 @@
   (logfile pinentry-logfile set-pinentry-logfile!)
   (ok-button pinentry-ok-button set-pinentry-ok-button!)
   (notok-button pinentry-notok-button set-pinentry-notok-button!)
-  (cancel-button pinentry-cancel-button set-pinentry-cancel-button!))
+  (cancel-button pinentry-cancel-button set-pinentry-cancel-button!)
+  (lc-ctype pinentry-lc-ctype set-pinentry-lc-ctype!)
+  (lc-messages pinentry-lc-messages set-pinentry-lc-messages!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val."
@@ -164,6 +168,7 @@ Known options are:
 grab
 ttyname=/dev/pts/1
 ttytype=tmux-256color
+lc-ctype=C
 lc-messages=C
 allow-external-password-cache
 default-ok=_OK
@@ -198,6 +203,20 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                         (make-regexp "^OPTION[[:blank:]]+default-prompt=(.+)$") line))
       (pinentry-set-mesg
        set-pinentry-prompt!
+       pinentry
+       (match:substring regex-match 1)))
+     ((set-and-return! regex-match
+                       (regexp-exec
+                        (make-regexp "^OPTION[[:blank:]]+lc-ctype=(.+)$") line))
+      (pinentry-set
+       set-pinentry-lc-ctype!
+       pinentry
+       (match:substring regex-match 1)))
+     ((set-and-return! regex-match
+                       (regexp-exec
+                        (make-regexp "^OPTION[[:blank:]]+lc-messages=(.+)$") line))
+      (pinentry-set
+       set-pinentry-lc-messages!
        pinentry
        (match:substring regex-match 1)))
      ((set-and-return! regex-match (regexp-exec option-re line))))
@@ -341,7 +360,9 @@ Return the input from the user if succeeded else #f."
       (let ((pass (pin-program #:prompt (pinentry-prompt pinentry)
                                #:message (compose-message pinentry)
                                #:visibility (pinentry-visibility pinentry)
-                               #:env `(("DISPLAY" . ,(pinentry-display pinentry))))))
+                               #:env `(("DISPLAY" . ,(pinentry-display pinentry))
+                                       ("LC_CTYPE" . ,(pinentry-lc-ctype pinentry))
+                                       ("LC_MESSAGES" . ,(pinentry-lc-messages pinentry))))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
               (format port "D ~a~!" pass)
@@ -362,7 +383,9 @@ Return the input from the user if succeeded else #f."
       ;; Can probably do this with a pipe in both direction, but
       ;; manual warns about deadlocks so sticking with this for now.
       (let ((button (confirm-program
-                     #:env `(("DISPLAY" . ,(pinentry-display pinentry)))
+                     #:env `(("DISPLAY" . ,(pinentry-display pinentry))
+                             ("LC_CTYPE" . ,(pinentry-lc-ctype pinentry))
+                             ("LC_MESSAGES" . ,(pinentry-lc-messages pinentry)))
                      #:visibility #t
                      #:only-match #t
                      #:buttons `(,(pinentry-ok-button pinentry)
@@ -378,7 +401,9 @@ Return the input from the user if succeeded else #f."
      ((or (set-and-return! regex-match (regexp-exec confirm-one-button-re line))
           (set-and-return! regex-match (regexp-exec message-re line)))
       (let ((button (confirm-program
-                     #:env `(("DISPLAY" . ,(pinentry-display pinentry)))
+                     #:env `(("DISPLAY" . ,(pinentry-display pinentry))
+                             ("LC_CTYPE" . ,(pinentry-lc-ctype pinentry))
+                             ("LC_MESSAGES" . ,(pinentry-lc-messages pinentry)))
                      #:visibility #t
                      #:only-match #t
                      #:buttons `(,(pinentry-ok-button pinentry))

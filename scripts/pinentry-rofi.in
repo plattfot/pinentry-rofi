@@ -46,7 +46,9 @@
                                   (let ((logfile (option-ref options 'log #f)))
                                     (when logfile
                                       (open-output-file
-                                       (format #f "~a.~a" logfile (getpid))))))))
+                                       (format #f "~a.~a" logfile (getpid)))))
+                                  "C"
+                                  "C")))
     (when (option-ref options 'help #f)
       (format #t "\
 Usage: ~a [OPTIONS]
