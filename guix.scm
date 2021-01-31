@@ -57,7 +57,10 @@
                   (wrap-program
                       (string-append bin "pinentry-rofi")
                     (list "PATH" ":" 'prefix `(,rofi-bin)))
-                  #t))))))))
+                  #t)))))
+         (add-after 'compress-documentation 'installcheck
+           (lambda* rest
+             (invoke "make" "installcheck"))))))
     (native-inputs
      `(("autoconf" ,autoconf)
        ("autoconf-archive" ,autoconf-archive)

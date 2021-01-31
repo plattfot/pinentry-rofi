@@ -78,3 +78,9 @@ clean-go:
 CLEANFILES =					\
   $(GOBJECTS)					\
   $(TESTS:tests/%.scm=%.log)
+
+# Sanity checks for the script
+installcheck-local:
+	[ `$(bindir)/pinentry-rofi --version` = $(HVERSION) ]
+	$(bindir)/pinentry-rofi --help
+	echo BYE | $(bindir)/pinentry-rofi
