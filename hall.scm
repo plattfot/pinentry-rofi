@@ -1,7 +1,7 @@
 (hall-description
   (name "pinentry-rofi")
   (prefix "")
-  (version "2.0.2")
+  (version "2.0.3")
   (author "Fredrik Salomonsson")
   (copyright (2020))
   (synopsis "Rofi frontend to pinentry")
