@@ -38,17 +38,71 @@
    Install it with guix is recommended as that will work on most linux
    distributions.
 
+   Then add it to your =~/.gnupg/gpg-agent.conf=
+
+*** Guix on a foreign distro
+
+    If you are running guix on a foreign distro, you need to make sure
+    the =GUIX_LOCPATH= environment variable is passed to the gpg-agent
+    otherwise rofi will fail to set the locale and therefore cannot
+    launch. Which result in the pinentry aborting.
+
+    On a distribution that is using systemd (here I'm using Arch Linux
+    as an example) simply run:
+
+    #+begin_src shell
+      echo "GUIX_LOCPATH=$GUIX_LOCPATH"
+    #+end_src
+
+    Copy that, then run:
+    #+begin_src shell
+      systend --user edit gpg-agent.service
+    #+end_src
+
+    And add it in the =override.conf=:
+    #+begin_src conf
+      [Service]
+      Environment=GUIX_LOCPATH=%h/.guix-profile/lib/locale
+    #+end_src
+
+    On my system, =GUIX_LOCPATH= points to the default profile i.e.
+    =$HOME/.guix-profile/lib/locale=. =%h= in systemd gives you the
+    path to the home directory. This should be the case for most
+    people, but if your =GUIX_LOCPATH= points to something different
+    change the =override.conf= to reflect that.
+
 ** Arch Linux
-   Clone my aur repo and the build the package using the PKGBUILD:
+   The =PKGBUILD= file for arch is in the =build-aux=, so just run:
 
    #+begin_src shell
-     git clone https://github.com/plattfot/pinentry-rofi-aur.git
-     cd pinentry-rofi-aur
+     cd build-aux
      makepkg -ic
    #+end_src
 
    The binary location is then `/usr/bin/pinentry-rofi`.
+
 ** From Source
 
   See [[file:HACKING][HACKING]] on how to build this from source
 
+* Gpg-agent
+
+  To use =pinentry-rofi= with =gpg-agent=, you can set it as the
+  =pinentry-program= in the =~/.gnupg/gpg-agent.conf=. Note that you
+  need to use the full path to the binary.
+
+  For example for Arch Linux this would be:
+  #+begin_src conf
+    pinentry-program /usr/bin/pinentry-rofi
+  #+end_src
+
+  And for guix:
+  #+begin_src conf
+    pinentry-program <HOME>/.guix-profile/bin/pinentry-rofi
+  #+end_src
+  Where =<HOME>= is the full path to home for your user.
+
+  Don't forget to restart =gpg-agent= for the changes to take affect:
+  #+begin_src shell
+    gpg-connect-agent reloadagent /bye
+  #+end_src
