@@ -34,7 +34,13 @@ dependencies manually:
   - autoconf
   - autoconf-archive
   - automake
-  - pkg-config
+  - coreutils
+  - gawk
+  - grep
+  - guile
+  - make
+  - pkg-config (or pkgconf)
+  - sed
   - texinfo
 
 Once those dependencies are installed you can run:
