@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pinentry-rofi
+Upstream-Contact: Fredrik Salomonsson <plattfot@posteo.net>
+Source: https://github.com/plattfot/pinentry-rofi/
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...

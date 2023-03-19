@@ -1,4 +1,7 @@
 # -*- mode: org; coding: utf-8; -*-
+# SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 #+TITLE: Hacking pinentry-rofi
 

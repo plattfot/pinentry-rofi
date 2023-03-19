@@ -1,3 +1,7 @@
+;; SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+;;
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
 (use-modules
   (guix packages)
   (guix git-download)

@@ -1,9 +1,10 @@
 # -*- mode: org; coding: utf-8; -*-
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 #+TITLE: Pinentry-Rofi NEWS – history of user-visible changes
 #+STARTUP: content hidestars
 
-Copyright © (2020) Fredrik Salomonsson <plattfot@gmail.com>
+Copyright © (2020-2023) Fredrik Salomonsson <plattfot@posteo.net>
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

@@ -1,3 +1,6 @@
+dnl SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+dnl
+dnl SPDX-License-Identifier: CC0-1.0
 
 dnl -*- Autoconf -*-
 

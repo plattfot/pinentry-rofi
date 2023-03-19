@@ -1,3 +1,6 @@
+@c SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+@c
+@c SPDX-License-Identifier: GPL-3.0-or-later
 
 \input texinfo
 @c -*-texinfo-*-

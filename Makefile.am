@@ -1,4 +1,6 @@
-
+# SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+#
+# SPDX-License-Identifier: CC0-1.0
 
 bin_SCRIPTS = scripts/pinentry-rofi
 
