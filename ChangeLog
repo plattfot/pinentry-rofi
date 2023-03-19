@@ -2,6 +2,9 @@ SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
 
 SPDX-License-Identifier: GPL-3.0-or-later
 
+2023-03-19 Fredrik Salomonsson <plattfot@posteo.net>
+	* 2.0.4:
+	Version 3.0 of the REUSE specification compliant.
 2021-01-31 Fredrik Salomonsson <plattfot@posteo.net>
 	* 2.0.3:
 	Fix issue with the executable not finding the module.

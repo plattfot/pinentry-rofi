@@ -5,9 +5,9 @@
 (hall-description
   (name "pinentry-rofi")
   (prefix "")
-  (version "2.0.3")
+  (version "2.0.4")
   (author "Fredrik Salomonsson")
-  (copyright (2020))
+  (copyright (2020 2021 2022 2023))
   (synopsis "Rofi frontend to pinentry")
   (description
     "Simple pinentry gui using rofi, it is written in GNU guile.")
