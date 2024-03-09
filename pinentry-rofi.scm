@@ -24,6 +24,7 @@
             pinentry-cancel-button set-pinentry-cancel-button!
             pinentry-lc-ctype set-pinentry-lc-ctype!
             pinentry-lc-messages set-pinentry-lc-messages!
+            pinentry-rofi-options
 
             remove-underline
             escape-underscore
@@ -60,7 +61,7 @@
   (exit #f))
 
 (define-record-type <pinentry>
-  (make-pinentry ok prompt ok-button cancel-button display logfile lc-ctype lc-messages)
+  (make-pinentry ok prompt ok-button cancel-button display logfile lc-ctype lc-messages rofi-options)
   pinentry?
   (ok pinentry-ok set-pinentry-ok!)
   (prompt pinentry-prompt set-pinentry-prompt!)
@@ -73,7 +74,8 @@
   (notok-button pinentry-notok-button set-pinentry-notok-button!)
   (cancel-button pinentry-cancel-button set-pinentry-cancel-button!)
   (lc-ctype pinentry-lc-ctype set-pinentry-lc-ctype!)
-  (lc-messages pinentry-lc-messages set-pinentry-lc-messages!))
+  (lc-messages pinentry-lc-messages set-pinentry-lc-messages!)
+  (rofi-options pinentry-rofi-options set-pinentry-rofi-options!))
 
 (define-syntax-rule (set-and-return! val expr)
   "Set val to expr and return val."
@@ -297,7 +299,8 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
                      (prompt ">")
                      message
                      buttons
-                     only-match)
+                     only-match
+                     (extra-options '()))
   "Run external program rofi and fetch the input from the user.
 
 Keyword arguments:
@@ -307,6 +310,7 @@ VISIBILITY: If #t show the input
 MESSAGE: Message for the popup window
 BUTTONS: List of strings that will be buttons.
 ONLY-MATCH: Only allow to match what is listed in the buttons.
+EXTRA-OPTIONS: A list of extra options to pass to rofi.
 
 Return the input from the user if succeeded else #f."
   (let* ((inputs (if buttons `("echo -e"
@@ -322,7 +326,8 @@ Return the input from the user if succeeded else #f."
                     ,(if (not buttons) "-input /dev/null" "")
                     ,(if visibility "" "-password")
                     ,(format #f "-p ~s" prompt)
-                    ,(if message (format #f "-mesg ~s" message) "")))
+                    ,(if message (format #f "-mesg ~s" message) "")
+                    ,@(map (lambda (option) (format #f "~s" option)) extra-options)))
          (pipe (open-pipe (string-join (concatenate `(,inputs ,rofi-sh))) OPEN_READ))
          (pass (get-string-all pipe))
          (status (close-pipe pipe)))
@@ -346,7 +351,8 @@ Return the input from the user if succeeded else #f."
                                #:visibility (pinentry-visibility pinentry)
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))
                                        ("LC_CTYPE" . ,(pinentry-lc-ctype pinentry))
-                                       ("LC_MESSAGES" . ,(pinentry-lc-messages pinentry))))))
+                                       ("LC_MESSAGES" . ,(pinentry-lc-messages pinentry)))
+                               #:extra-options (pinentry-rofi-options pinentry))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
               (format port "D ~a~!" pass)
@@ -375,7 +381,8 @@ Return the input from the user if succeeded else #f."
                      #:buttons `(,(pinentry-ok-button pinentry)
                                  ,(or (pinentry-notok-button pinentry)
                                       (pinentry-cancel-button pinentry)))
-                     #:message (compose-message pinentry))))
+                     #:message (compose-message pinentry)
+                     #:extra-options (pinentry-rofi-options pinentry))))
         (if (and button
                  (string=? (string-trim-right button) (pinentry-ok-button pinentry)))
             (set-pinentry-ok! pinentry #t)
