@@ -32,15 +32,17 @@
                                       (open-output-file
                                        (format #f "~a.~a" logfile (getpid)))))
                                   "C"
-                                  "C")))
+                                  "C"
+                                  (option-ref options '() '()))))
     (when (option-ref options 'help #f)
       (format #t "\
-Usage: ~a [OPTIONS]
+Usage: ~a [OPTIONS]...
 Options:
   -d, --display DISPLAY Set display, default is ~s.
       --log LOGFILE     Log unknown commands to LOGFILE
   -v, --version         Display version.
   -h, --help            Display this help.
+  -- [ROFI-OPTIONS]...  Options after -- will be sent to rofi
 Author:
 ~a
 "
