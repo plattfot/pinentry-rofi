@@ -3,6 +3,7 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 (define-module (tests-pinentry-rofi)
+  #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-64)
   #:use-module (ice-9 popen)
   #:use-module (ice-9 textual-ports)
@@ -11,7 +12,7 @@
 (test-begin "pinentry-rofi")
 
 ;; (test-begin "pinentry")
-(let ((pinentry (make-pinentry #t "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #t "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry? pinentry))
   (test-assert (pinentry-ok pinentry))
   (test-equal "Prompt" (pinentry-prompt pinentry))
@@ -23,7 +24,7 @@
   (test-assert (not (pinentry-visibility pinentry)))
   (test-assert (not (pinentry-error pinentry))))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (not (pinentry-ok pinentry))))
 
 ;; (test-end "pinentry")
@@ -81,15 +82,15 @@
 (test-equal "Ok\n_Cancel"
   (input-string "_Ok\n__Cancel"))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (pinentry-set set-pinentry-notok-button! pinentry "Not ok")
   (test-equal "Not ok" (pinentry-notok-button pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-error #t (pinentry-set pinentry-notok-button pinentry "Not ok")))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION default-ok=Okay"))
   (test-equal "Okay" (pinentry-ok-button pinentry))
   (test-equal "Cancel" (pinentry-cancel-button pinentry))
@@ -98,7 +99,7 @@
   (test-equal "C" (pinentry-lc-messages pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION default-cancel=No"))
   (test-equal "Ok" (pinentry-ok-button pinentry))
   (test-equal "No" (pinentry-cancel-button pinentry))
@@ -107,7 +108,7 @@
   (test-equal "C" (pinentry-lc-messages pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION default-prompt=Password:"))
   (test-equal "Ok" (pinentry-ok-button pinentry))
   (test-equal "Cancel" (pinentry-cancel-button pinentry))
@@ -116,7 +117,7 @@
   (test-equal "C" (pinentry-lc-messages pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION lc-ctype=en_US.UTF-8"))
   (test-equal "Ok" (pinentry-ok-button pinentry))
   (test-equal "Cancel" (pinentry-cancel-button pinentry))
@@ -125,7 +126,7 @@
   (test-equal "C" (pinentry-lc-messages pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION lc-messages=en_US.UTF-8"))
   (test-equal "Ok" (pinentry-ok-button pinentry))
   (test-equal "Cancel" (pinentry-cancel-button pinentry))
@@ -134,15 +135,15 @@
   (test-equal "en_US.UTF-8" (pinentry-lc-messages pinentry))
   (test-assert (pinentry-ok pinentry)))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-option pinentry "OPTION foo bar")))
 
-(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (not (pinentry-option pinentry " OPTION foo bar")))
   (test-assert (not (pinentry-option pinentry "OPTION")))
   (test-assert (not (pinentry-option pinentry "Foo"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C"))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '()))
        (output "")
        (fake-port (make-soft-port
                   (vector
@@ -159,14 +160,14 @@
   (test-assert (not (pinentry-getinfo pinentry "GETINFO")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setkeyinfo pinentry "SETKEYINFO Foo"))
   (test-assert (pinentry-ok pinentry))
   (test-assert (not (pinentry-setkeyinfo pinentry " SETKEYINFO foo bar")))
   (test-assert (not (pinentry-setkeyinfo pinentry "SETKEYINFO")))
   (test-assert (not (pinentry-setkeyinfo pinentry "Foo"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setok pinentry "SETOK Foo"))
   (test-equal "Foo" (pinentry-ok-button pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -179,7 +180,7 @@
   (test-assert (not (pinentry-setok pinentry "Foo")))
   (test-equal "Ok okay" (pinentry-ok-button pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setnotok pinentry "SETNOTOK Foo"))
   (test-equal "Foo" (pinentry-notok-button pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -192,7 +193,7 @@
   (test-assert (not (pinentry-setnotok pinentry "Foo")))
   (test-equal "Not Ok" (pinentry-notok-button pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setcancel pinentry "SETCANCEL Foo"))
   (test-equal "Foo" (pinentry-cancel-button pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -205,7 +206,7 @@
   (test-assert (not (pinentry-setcancel pinentry "Foo")))
   (test-equal "Abort" (pinentry-cancel-button pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Desc" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Desc" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setdesc pinentry "SETDESC Foo"))
   (test-equal "Foo" (pinentry-desc pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -218,7 +219,7 @@
   (test-assert (not (pinentry-setdesc pinentry "Foo")))
   (test-equal "<u>T</u>his is a description&#10;<u>O</u>n two lines" (pinentry-desc pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Error" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Error" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-seterror pinentry "SETERROR Foo"))
   (test-equal "Foo" (pinentry-error pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -231,7 +232,7 @@
   (test-assert (not (pinentry-seterror pinentry "Foo")))
   (test-equal "<u>T</u>his is an error&#10;<u>O</u>n two lines" (pinentry-error pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Prompt" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Prompt" ":1" "test.log" "C" "C" '())))
   (test-assert (pinentry-setprompt pinentry "SETPROMPT Foo"))
   (test-equal "Foo" (pinentry-prompt pinentry))
   (test-assert (pinentry-ok pinentry))
@@ -244,11 +245,11 @@
   (test-assert (not (pinentry-setprompt pinentry "Foo")))
   (test-equal "<u>T</u>his is a prompt&#10;<u>O</u>n two lines" (pinentry-prompt pinentry)))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Prompt" ":1" "test.log" "C" "C")))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Prompt" ":1" "test.log" "C" "C" '())))
   (test-error "(quit #t)" (pinentry-bye pinentry "BYE"))
   (test-assert (not (pinentry-bye pinentry "Hej då"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8"))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8" '("--foo")))
        (output "")
        (fake-port (make-soft-port
                   (vector
@@ -269,12 +270,14 @@
                                           (prompt ">")
                                           message
                                           buttons
-                                          only-match)
+                                          only-match
+                                          extra-options)
                                   (test-equal "Prompt" prompt)
                                   (test-equal description message)
                                   (test-assert (not visibility))
                                   (test-assert (not only-match))
                                   (test-assert (not buttons))
+                                  (test-equal  '("--foo") extra-options)
                                   (test-equal `(("DISPLAY" . ,display)
                                                 ("LC_CTYPE" . "C")
                                                 ("LC_MESSAGES" . "en_US.UTF-8"))
@@ -290,13 +293,16 @@
                                           (prompt ">")
                                           message
                                           buttons
-                                          only-match)
+                                          only-match
+                                          extra-options)
                                   (test-equal "Prompt" prompt)
                                   (test-equal (format #f "~a&#10;~a" error description)
                                     message)
                                   (test-assert (not visibility))
                                   (test-assert (not only-match))
                                   (test-assert (not buttons))
+                                  (test-assert (list? extra-options))
+                                  (test-equal 1 (length extra-options))
                                   (test-equal `(("DISPLAY" . ,display)
                                                 ("LC_CTYPE" . "C")
                                                 ("LC_MESSAGES" . "en_US.UTF-8"))
@@ -311,13 +317,16 @@
                                           (prompt ">")
                                           message
                                           buttons
-                                          only-match)
+                                          only-match
+                                          extra-options)
                                   (test-equal "Prompt" prompt)
                                   (test-equal (format #f "~a&#10;~a" error description)
                                     message)
                                   (test-assert (not visibility))
                                   (test-assert (not only-match))
                                   (test-assert (not buttons))
+                                  (test-assert (list? extra-options))
+                                  (test-equal 1 (length extra-options))
                                   (test-equal `(("DISPLAY" . ,display)
                                                 ("LC_CTYPE" . "C")
                                                 ("LC_MESSAGES" . "en_US.UTF-8"))
@@ -332,13 +341,16 @@
                                           (prompt ">")
                                           message
                                           buttons
-                                          only-match)
+                                          only-match
+                                          extra-options)
                                   (test-equal "Prompt" prompt)
                                   (test-equal (format #f "~a&#10;~a" error description)
                                     message)
                                   (test-assert (not visibility))
                                   (test-assert (not only-match))
                                   (test-assert (not buttons))
+                                  (test-assert (list? extra-options))
+                                  (test-equal 1 (length extra-options))
                                   (test-equal `(("DISPLAY" . ,display)
                                                 ("LC_CTYPE" . "C")
                                                 ("LC_MESSAGES" . "en_US.UTF-8"))
@@ -349,7 +361,7 @@
   (test-assert (not (pinentry-getinfo pinentry " GETPIN")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8"))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8" '()))
        (description "This is a description")
        (error "Something went wrong")
        (display ":1"))
@@ -361,11 +373,13 @@
                                                 (prompt ">")
                                                 message
                                                 buttons
-                                                only-match)
+                                                only-match
+                                                extra-options)
                                   (test-equal ">" prompt)
                                   (test-equal description message)
                                   (test-assert visibility)
                                   (test-assert only-match)
+                                  (test-assert (null-list? extra-options))
                                   (test-equal `("Ok" "Cancel") buttons)
                                   (test-equal `(("DISPLAY" . ,display)
                                                 ("LC_CTYPE" . "C")
@@ -391,13 +405,15 @@
                             (prompt ">")
                             message
                             buttons
-                            only-match)
+                            only-match
+                            extra-options)
                     (test-equal ">" prompt)
                     (test-equal (format #f "~a&#10;~a" error description)
                       message)
                     (test-assert visibility)
                     (test-assert only-match)
                     (test-equal `("Ok" "Cancel") buttons)
+                    (test-equal `() extra-options)
                     (test-equal `(("DISPLAY" . ,display)
                                   ("LC_CTYPE" . "C")
                                   ("LC_MESSAGES" . "en_US.UTF-8"))
@@ -409,7 +425,7 @@
   (test-assert (not (pinentry-getinfo pinentry " CONFIRM")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
 
-(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8"))
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8" '()))
        (description "This is a description")
        (display ":1"))
   (set-pinentry-desc! pinentry description)
