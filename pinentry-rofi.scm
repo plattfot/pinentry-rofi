@@ -1,5 +1,6 @@
 ;; SPDX-FileCopyrightText: 2016 Quentin "Sardem FF7" Glidic
 ;; SPDX-FileCopyrightText: 2018-2023 Fredrik Salomonsson <plattfot@posteo.net>
+;; SPDX-FileCopyrightText: 2024 Jakob Simon Kukla <jakob.kukla@gmail.com>
 ;;
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -18,6 +19,7 @@
             pinentry-visibility set-pinentry-visibility!
             pinentry-display set-pinentry-display!
             pinentry-error set-pinentry-error!
+            pinentry-title set-pinentry-title!
             pinentry-logfile set-pinentry-logfile!
             pinentry-ok-button set-pinentry-ok-button!
             pinentry-notok-button set-pinentry-notok-button!
@@ -50,6 +52,7 @@
             pinentry-setnotok
             pinentry-setdesc
             pinentry-seterror
+            pinentry-settitle
             pinentry-setprompt
             pinentry-getpin
             pinentry-confirm
@@ -69,6 +72,7 @@
   (visibility pinentry-visibility set-pinentry-visibility!)
   (display pinentry-display set-pinentry-display!)
   (error pinentry-error set-pinentry-error!)
+  (title pinentry-title set-pinentry-title!)
   (logfile pinentry-logfile set-pinentry-logfile!)
   (ok-button pinentry-ok-button set-pinentry-ok-button!)
   (notok-button pinentry-notok-button set-pinentry-notok-button!)
@@ -283,6 +287,17 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
        (match:substring regex-match 1)))
     regex-match))
 
+(define (pinentry-settitle pinentry line)
+  "SETTITLE window title"
+  (let ((settitle-re (make-regexp "^SETTITLE (.+)$"))
+        (regex-match #f))
+    (when (set-and-return! regex-match (regexp-exec settitle-re line))
+      (pinentry-set-mesg
+       set-pinentry-title!
+       pinentry
+       (match:substring regex-match 1)))
+    regex-match))
+
 (define (pinentry-setprompt pinentry line)
   "SETPROMPT Passphrase:"
   (let ((setprompt-re (make-regexp "^SETPROMPT (.+)$"))
@@ -296,6 +311,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
 
 (define* (rofi-popup #:key (env '())
                      visibility
+                     title
                      (prompt ">")
                      message
                      buttons
@@ -304,6 +320,7 @@ touch-file=/run/user/1000/gnupg/S.gpg-agent"
   "Run external program rofi and fetch the input from the user.
 
 Keyword arguments:
+TITLE: Text for the window title
 PROMPT: Text for the prompt, default '>'
 ENV: List of environemnt variables in the form (ENVVAR . VALUE)
 VISIBILITY: If #t show the input
@@ -325,6 +342,7 @@ Return the input from the user if succeeded else #f."
                     ,(if (and only-match buttons) "-only-match" "")
                     ,(if (not buttons) "-input /dev/null" "")
                     ,(if visibility "" "-password")
+                    ,(if title (format #f "-window-title ~s" title) "")
                     ,(format #f "-p ~s" prompt)
                     ,(if message (format #f "-mesg ~s" message) "")
                     ,@(map (lambda (option) (format #f "~s" option)) extra-options)))
@@ -346,7 +364,8 @@ Return the input from the user if succeeded else #f."
   (let ((getpin-re (make-regexp "^GETPIN$"))
         (regex-match #f))
     (when (set-and-return! regex-match (regexp-exec getpin-re line))
-      (let ((pass (pin-program #:prompt (pinentry-prompt pinentry)
+      (let ((pass (pin-program #:title (pinentry-title pinentry)
+                               #:prompt (pinentry-prompt pinentry)
                                #:message (compose-message pinentry)
                                #:visibility (pinentry-visibility pinentry)
                                #:env `(("DISPLAY" . ,(pinentry-display pinentry))
@@ -429,6 +448,7 @@ Return the input from the user if succeeded else #f."
        ((pinentry-getpin pinentry line rofi-popup))
        ((pinentry-confirm pinentry line rofi-popup))
        ((pinentry-seterror pinentry line))
+       ((pinentry-settitle pinentry line))
        ((pinentry-bye pinentry line))
        (#t (begin
              (let ((log (pinentry-logfile pinentry)))
