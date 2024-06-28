@@ -1,11 +1,11 @@
-;; SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+;; SPDX-FileCopyrightText: 2023-2024 Fredrik Salomonsson <plattfot@posteo.net>
 ;;
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 (hall-description
   (name "pinentry-rofi")
   (prefix "")
-  (version "2.1.0")
+  (version "2.1.1")
   (author "Fredrik Salomonsson")
   (copyright (2020 2021 2022 2023))
   (synopsis "Rofi frontend to pinentry")

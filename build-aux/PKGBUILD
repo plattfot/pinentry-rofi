@@ -1,10 +1,10 @@
-# SPDX-FileCopyrightText: 2023 Fredrik Salomonsson <plattfot@posteo.net>
+# SPDX-FileCopyrightText: 2023-2024 Fredrik Salomonsson <plattfot@posteo.net>
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Maintainer: Fredrik Salomonsson <plattfot@posteo.net>
 pkgname=guile-pinentry-rofi
-pkgver=2.1.0
+pkgver=2.1.1
 pkgrel=1
 epoch=
 pkgdesc="rofi frontend for pinentry"
