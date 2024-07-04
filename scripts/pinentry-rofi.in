@@ -18,7 +18,7 @@
              (pinentry-rofi))
 (define (main args)
   (let* ((option-spec
-          '((display (single-char #\d) (value #t))
+          '((display (single-char #\D) (value #t))
             (xauthority (single-char #\a) (value #t))
             (version (single-char #\v) (value #f))
             (log (value #t))
@@ -38,7 +38,7 @@
       (format #t "\
 Usage: ~a [OPTIONS]...
 Options:
-  -d, --display DISPLAY Set display, default is ~s.
+  -D, --display DISPLAY Set display, default is ~s.
       --log LOGFILE     Log unknown commands to LOGFILE
   -v, --version         Display version.
   -h, --help            Display this help.
