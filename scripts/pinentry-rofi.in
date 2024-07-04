@@ -38,7 +38,7 @@
       (format #t "\
 Usage: ~a [OPTIONS]...
 Options:
-  -D, --display DISPLAY      Set display, default is ~s.
+  -D, --display DISPLAY      Set display, default is ~s
       --log LOGFILE          Log unknown commands to LOGFILE
   -v, --version              Display version.
   -h, --help                 Display this help.
