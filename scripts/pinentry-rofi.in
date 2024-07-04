@@ -21,9 +21,11 @@
           '((display (single-char #\D) (value #t))
             (xauthority (single-char #\a) (value #t))
             (version (single-char #\v) (value #f))
+            (lc-ctype (single-char #\C) (value #t))
             (log (value #t))
             (help (single-char #\h) (value #f))))
          (default-display ":0")
+         (default-lc-ctype "C")
          (options (getopt-long (command-line) option-spec))
          (pinentry (make-pinentry #t "Passphrase:" "Ok" "Cancel"
                                   (option-ref options 'display default-display)
@@ -31,7 +33,7 @@
                                     (when logfile
                                       (open-output-file
                                        (format #f "~a.~a" logfile (getpid)))))
-                                  "C"
+                                  (option-ref options 'lc-ctype default-lc-ctype)
                                   "C"
                                   (option-ref options '() '()))))
     (when (option-ref options 'help #f)
@@ -42,6 +44,7 @@ Options:
       --log LOGFILE          Log unknown commands to LOGFILE
   -v, --version              Display version.
   -h, --help                 Display this help.
+  -C, --lc-ctype STRING      Set the tty LC_CTYPE value
   -- [ROFI-OPTIONS]...  Options after -- will be sent to rofi
 Author:
 ~a
