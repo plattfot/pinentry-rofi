@@ -23,6 +23,7 @@
             (version (single-char #\v) (value #f))
             (lc-ctype (single-char #\C) (value #t))
             (lc-message (single-char #\M) (value #t))
+            (no-global-grab (single-char #\g) (value #f))
             (log (value #t))
             (help (single-char #\h) (value #f))))
          (default-display ":0")
@@ -37,7 +38,10 @@
                                        (format #f "~a.~a" logfile (getpid)))))
                                   (option-ref options 'lc-ctype default-lc-ctype)
                                   (option-ref options 'lc-message default-lc-message)
-                                  (option-ref options '() '()))))
+                                  (option-ref options '()
+                                              (if (option-ref options 'no-global-grab #f)
+                                                    '("-no-lazy-grab")
+                                                    '())))))
     (when (option-ref options 'help #f)
       (format #t "\
 Usage: ~a [OPTIONS]...
@@ -48,6 +52,7 @@ Options:
   -h, --help                 Display this help.
   -C, --lc-ctype STRING      Set the tty LC_CTYPE value
   -M, --lc-messages STRING   Set the tty LC_MESSAGES value
+  -g, --no-global-grab       Grab keyboard only while window is focused
   -- [ROFI-OPTIONS]...  Options after -- will be sent to rofi
 Author:
 ~a
