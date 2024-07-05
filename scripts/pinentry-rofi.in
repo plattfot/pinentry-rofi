@@ -21,9 +21,16 @@
           '((display (single-char #\D) (value #t))
             (xauthority (single-char #\a) (value #t))
             (version (single-char #\v) (value #f))
+            (debug (single-char #\d) (value #f))
+            (ttyname (single-char #\T) (value #t))
+            (ttytype (single-char #\N) (value #t))
             (lc-ctype (single-char #\C) (value #t))
             (lc-message (single-char #\M) (value #t))
+            (timeout (single-char #\o) (value #t))
             (no-global-grab (single-char #\g) (value #f))
+            (parent-wid (single-char #\W) (value #f))
+            (colors (single-char #\c) (value #f))
+            (ttyalert (single-char #\a) (value #f))
             (log (value #t))
             (help (single-char #\h) (value #f))))
          (default-display ":0")
@@ -54,6 +61,14 @@ Options:
   -M, --lc-messages STRING   Set the tty LC_MESSAGES value
   -g, --no-global-grab       Grab keyboard only while window is focused
   -- [ROFI-OPTIONS]...  Options after -- will be sent to rofi
+Dummy options (does not do anything just for compatibility):
+  -d, --debug                Turn on debugging output
+  -T, --ttyname FILE         Set the tty terminal node name
+  -N, --ttytype NAME         Set the tty terminal type
+  -o, --timeout SECS         Timeout waiting for input after this many seconds
+  -W, --parent-wid           Parent window ID (for positioning)
+  -c, --colors STRING        Set custom colors for ncurses
+  -a, --ttyalert STRING      Set the alert mode (none, beep or flash)
 Author:
 ~a
 "
@@ -61,6 +76,17 @@ Author:
               default-display
               @AUTHOR@)
       (exit #t))
+    (let ((unimplemented (lambda (option)
+                           (when (option-ref options option #f)
+                             (format (current-error-port) "warning: --~a is not implemented~%"
+                                     (symbol->string option))))))
+      (unimplemented 'debug)
+      (unimplemented 'ttyname)
+      (unimplemented 'ttytype)
+      (unimplemented 'timeout)
+      (unimplemented 'parent-wid)
+      (unimplemented 'colors)
+      (unimplemented 'ttyalert))
     (when (option-ref options 'version #f)
       (format #t "~a~%" @HVERSION@)
       (exit #t))
