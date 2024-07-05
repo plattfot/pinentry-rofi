@@ -261,12 +261,14 @@
                   "w"))
        (description "This is a description")
        (error "Something went wrong")
+       (title "Rofi-pinentry")
        (display ":1"))
   (set-pinentry-desc! pinentry description)
   (set-pinentry-display! pinentry display)
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())
                                           visibility
+                                          title
                                           (prompt ">")
                                           message
                                           buttons
@@ -274,6 +276,7 @@
                                           extra-options)
                                   (test-equal "Prompt" prompt)
                                   (test-equal description message)
+                                  (test-assert (not title))
                                   (test-assert (not visibility))
                                   (test-assert (not only-match))
                                   (test-assert (not buttons))
@@ -286,16 +289,19 @@
                                 #:port fake-port))
   (test-equal (format #f "D password") output)
   (set-pinentry-error! pinentry error)
+  (set-pinentry-title! pinentry title)
   (set! output "")
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())
                                           visibility
+                                          title
                                           (prompt ">")
                                           message
                                           buttons
                                           only-match
                                           extra-options)
                                   (test-equal "Prompt" prompt)
+                                  (test-equal "Rofi-pinentry" title)
                                   (test-equal (format #f "~a&#10;~a" error description)
                                     message)
                                   (test-assert (not visibility))
@@ -314,6 +320,7 @@
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())
                                           visibility
+                                          title
                                           (prompt ">")
                                           message
                                           buttons
@@ -338,6 +345,7 @@
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())
                                           visibility
+                                          title
                                           (prompt ">")
                                           message
                                           buttons
