@@ -4,8 +4,8 @@ dnl SPDX-License-Identifier: CC0-1.0
 
 dnl -*- Autoconf -*-
 
-AC_INIT(pinentry-rofi, 2.1.1)
-AC_SUBST(HVERSION, "\"2.1.1\"")
+AC_INIT(pinentry-rofi, 2.2.0)
+AC_SUBST(HVERSION, "\"2.2.0\"")
 AC_SUBST(AUTHOR, "\"Fredrik Salomonsson\"")
 AC_SUBST(COPYRIGHT, "'(2020 2021 2022 2023 2024)")
 AC_SUBST(LICENSE, gpl3+)

@@ -1,6 +1,9 @@
 SPDX-FileCopyrightText: 2023-2024 Fredrik Salomonsson <plattfot@posteo.net>
 
 SPDX-License-Identifier: GPL-3.0-or-later
+2024-07-14 Fredrik Salomonsson <plattfot@posteo.net>
+	* 2.2.0
+	Mimic CLI options to be compatible with `rbw`.
 2024-06-28 Fredrik Salomonsson <plattfot@posteo.net>
 	* 2.1.1
 	Add SETTITLE option - Contributed by jakobkukla.
