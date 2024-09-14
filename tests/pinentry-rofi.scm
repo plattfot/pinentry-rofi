@@ -287,7 +287,7 @@
                                     env)
                                   "password")
                                 #:port fake-port))
-  (test-equal (format #f "D password") output)
+  (test-equal (format #f "D password~%") output)
   (set-pinentry-error! pinentry error)
   (set-pinentry-title! pinentry title)
   (set! output "")
@@ -315,7 +315,7 @@
                                     env)
                                   "password")
                                 #:port fake-port))
-  (test-equal (format #f "D password") output)
+  (test-equal (format #f "D password~%") output)
   (set! output "")
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())

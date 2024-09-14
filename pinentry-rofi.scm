@@ -5,12 +5,13 @@
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
 (define-module (pinentry-rofi)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 popen)
+  #:use-module (ice-9 regex)
   #:use-module (ice-9 textual-ports)
   #:use-module (srfi srfi-1) ;; concatenate
   #:use-module (srfi srfi-9) ;; For records
-  #:use-module (ice-9 format)
-  #:use-module (ice-9 regex)
+  #:use-module (web uri)
   #:export (make-pinentry
             pinentry?
             pinentry-ok set-pinentry-ok!
@@ -374,7 +375,7 @@ Return the input from the user if succeeded else #f."
                                #:extra-options (pinentry-rofi-options pinentry))))
         (if (and pass (not (string-empty? (string-trim-both pass))))
             (begin
-              (format port "D ~a~!" pass)
+              (format port "D ~a~%~!" (uri-encode (string-trim-right pass #\newline)))
               (set-pinentry-ok! pinentry #t))
             (begin
               (format port "ERR 83886179 Operation cancelled <rofi>~%~!")
