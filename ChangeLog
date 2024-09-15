@@ -1,6 +1,10 @@
 SPDX-FileCopyrightText: 2023-2024 Fredrik Salomonsson <plattfot@posteo.net>
 
 SPDX-License-Identifier: GPL-3.0-or-later
+2024-09-15 Fredrik Salomonsson <plattfot@posteo.net>
+	* 3.0.0
+	URI Encode password before handing it to gpg.
+	NOTE: Potentially breaking the input of older passwords!
 2024-07-14 Fredrik Salomonsson <plattfot@posteo.net>
 	* 2.2.0
 	Mimic CLI options to be compatible with `rbw`.
