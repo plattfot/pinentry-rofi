@@ -16,6 +16,26 @@
   I also wanted a small project which I could use to practice writing
   GNU guile.
 
+* 3.0.0 Breaking changes please read
+
+  There is a major bug in pinentry-rofi 2.2.0 and below.  The password
+  was not encoded before giving it to gpg.  Which meant that passwords
+  including character other than alphanumerics from ASCII and `-`,
+  `.`, `_` and `~` ended up being decoded on gpg's side.  Making them
+  not match the input and therefore not work on other pinentry tools.
+  See [[https://github.com/plattfot/pinentry-rofi/issues/27][#27]] for details.
+
+  Before moving to pinentry-rofi-3.0.0, please make sure to
+  temporarily change the passwords affected by this bug to something
+  that does not include those special characters.  Make the upgrade
+  then change back.
+
+  An alternative is to figure out what gnupg decoded the passwords too
+  and use that as the input when using pinentry-rofi-3.0.0.  And
+  change the passwords to match what they where suppose to be.
+
+  Sorry for the headaches.
+
 * 2.0.0 Breaking changes please read
 
   As of version 2.0.0, =pinentry-rofi= is now built using [[https://www.gnu.org/software/automake][automake]].

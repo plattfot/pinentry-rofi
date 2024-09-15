@@ -287,7 +287,7 @@
                                     env)
                                   "password")
                                 #:port fake-port))
-  (test-equal (format #f "D password") output)
+  (test-equal (format #f "D password~%") output)
   (set-pinentry-error! pinentry error)
   (set-pinentry-title! pinentry title)
   (set! output "")
@@ -315,7 +315,7 @@
                                     env)
                                   "password")
                                 #:port fake-port))
-  (test-equal (format #f "D password") output)
+  (test-equal (format #f "D password~%") output)
   (set! output "")
   (test-assert (pinentry-getpin pinentry "GETPIN"
                                 (lambda* (#:key (env '())
@@ -480,4 +480,29 @@
   (test-assert (not (pinentry-getinfo pinentry " MESSAGE")))
   (test-assert (not (pinentry-getinfo pinentry "Foo"))))
 
+(let* ((pinentry (make-pinentry #f "Prompt" "Ok" "Cancel" ":1" "test.log" "C" "en_US.UTF-8" '()))
+       (output "")
+       (fake-port (make-soft-port
+                  (vector
+                   (lambda (c) (set! output (string-append output c)))
+                   (lambda (s) (set! output (string-append output s)))
+                   (lambda () #t)
+                   #f
+                   (lambda () #t))
+                  "w")))
+  (let ((passwords '("password"
+                     "Pass%word1"
+                     "1|Sb56(Qr=£?-N2GWjx>j=Ju+"
+                     "correct horse battery staple"))
+        (expectations '("password"
+                        "Pass%25word1"
+                        "1%7CSb56%28Qr%3D%C2%A3%3F-N2GWjx%3Ej%3DJu%2B"
+                        "correct%20horse%20battery%20staple")))
+    (for-each (lambda (password expected)
+                (test-assert (pinentry-getpin pinentry "GETPIN"
+                                              (lambda* _ (string-append password "\n"))
+                                              #:port fake-port))
+                (test-equal (format #f "D ~a~%" expected) output)
+                (set! output ""))
+              passwords expectations)))
 (test-end "pinentry-rofi")
